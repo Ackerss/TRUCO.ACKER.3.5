@@ -9,7 +9,7 @@
     --text-color: #e0e0e0;
     --text-color-light: #c0c0c0;
     --text-color-lighter: #b0b0b0;
-    --text-color-muted: #ddd;
+    --text-color-muted: #ddd; /* Cor dos créditos */
     --title-color: #ffffff;
     --border-color: #444;
     --border-color-light: #555;
@@ -39,18 +39,7 @@
     --button-truco-text: #91d5ff;
     --button-truco-border: #4a8ab3;
     --button-truco-border-bottom: #2a4a66;
-    --button-action-text: #1f1f1f; /* Para botões com fundo claro */
-    --button-action-text-light: #e0e0e0; /* Para botões com fundo escuro */
-    --button-change-mode-bg: #5a5a5a;
-    --button-change-mode-hover: #6a6a6a;
-    --button-change-mode-active: #4a4a4a;
-    --button-change-mode-border: #777;
-    --button-change-mode-border-bottom: #404040;
-    --button-export-bg: #367c36;
-    --button-export-hover: #409140;
-    --button-export-active: #2c6b2c;
-    --button-export-border: #4aab87;
-    --button-export-border-bottom: #2b5a4f;
+    --button-action-text: #1f1f1f;
     --button-edit-bg: #96f2d7;
     --button-edit-hover: #a3f5e0;
     --button-edit-active: #75e0c1;
@@ -77,11 +66,6 @@
     --shadow-color: rgba(0,0,0,0.1);
     --shadow-color-darker: rgba(0,0,0,0.15);
     --shadow-color-darkest: rgba(0,0,0,0.2);
-    --modal-overlay-bg: rgba(0, 0, 0, 0.7);
-    --modal-content-bg: var(--scoreboard-bg);
-    --modal-button-bg: var(--button-bg);
-    --modal-button-hover-bg: var(--button-hover-bg);
-    --modal-button-text-color: var(--button-text);
 }
 
 /* Tema Claro */
@@ -125,17 +109,6 @@ body.light-theme {
     --button-truco-border: #b8daff;
     --button-truco-border-bottom: #93b9e6;
     --button-action-text: #212529;
-    --button-action-text-light: #ffffff;
-    --button-change-mode-bg: #e0e0e0;
-    --button-change-mode-hover: #d0d0d0;
-    --button-change-mode-active: #c0c0c0;
-    --button-change-mode-border: #c0c0c0;
-    --button-change-mode-border-bottom: #b0b0b0;
-    --button-export-bg: #c8e6c9;
-    --button-export-hover: #a5d6a7;
-    --button-export-active: #81c784;
-    --button-export-border: #a5d6a7;
-    --button-export-border-bottom: #81c784;
     --button-edit-bg: #a3f5e0;
     --button-edit-hover: #b7f7e6;
     --button-edit-active: #89e8d0;
@@ -159,569 +132,136 @@ body.light-theme {
     --button-disabled-bg: #e9ecef;
     --button-disabled-text: #adb5bd;
     --button-disabled-border: #dee2e6;
-    --shadow-color: rgba(0,0,0,0.08);
-    --shadow-color-darker: rgba(0,0,0,0.12);
-    --shadow-color-darkest: rgba(0,0,0,0.15);
-    --modal-overlay-bg: rgba(0, 0, 0, 0.5);
-    --modal-content-bg: var(--scoreboard-bg);
-    --modal-button-bg: var(--button-bg);
-    --modal-button-hover-bg: var(--button-hover-bg);
-    --modal-button-text-color: var(--button-text);
+    --shadow-color: rgba(0,0,0,0.1);
+    --shadow-color-darker: rgba(0,0,0,0.15);
+    --shadow-color-darkest: rgba(0,0,0,0.2);
 }
 
 /* --- Estilos Gerais --- */
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: 100vh;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    margin: 0;
-    padding: 15px;
-    box-sizing: border-box;
-    transition: background-color 0.3s ease, color 0.3s ease;
-    -webkit-tap-highlight-color: transparent;
-}
-.scoreboard {
-    background-color: var(--scoreboard-bg);
-    padding: 15px 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px var(--shadow-color-darker);
-    text-align: center;
-    width: 100%;
-    max-width: 500px;
-    box-sizing: border-box;
-    border: 1px solid var(--border-color);
-    position: relative;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-}
-h1 {
-    color: var(--title-color);
-    margin-top: 0;
-    margin-bottom: 20px;
-    font-size: 1.7em;
-    font-weight: 600;
-    text-shadow: 1px 1px 2px var(--shadow-color-darkest);
-}
-h2, h3, h4 {
-    color: var(--text-color-light);
-    font-weight: 500;
-}
-hr {
-    border: none;
-    border-top: 1px solid var(--border-color);
-    margin: 20px 0;
-}
+body { font-family: sans-serif; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 15px; box-sizing: border-box; transition: background-color 0.3s ease, color 0.3s ease; }
+.scoreboard { background-color: var(--scoreboard-bg); padding: 15px 20px; border-radius: 12px; box-shadow: 0 4px 15px var(--shadow-color-darker); text-align: center; width: 100%; max-width: 500px; box-sizing: border-box; border: 1px solid var(--border-color); position: relative; transition: background-color 0.3s ease, border-color 0.3s ease; }
+h1 { color: var(--title-color); margin-top: 0; margin-bottom: 15px; font-size: 1.6em; font-weight: bold; text-shadow: 1px 1px 2px var(--shadow-color-darkest); }
+h2, h3, h4 { color: var(--text-color-light); font-weight: normal; }
+hr { border: none; border-top: 1px solid var(--border-color); margin: 20px 0; }
 
 /* --- Botões de Configuração no Topo --- */
-.top-config-buttons {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 8px;
-}
-#theme-toggle-btn,
-#sound-toggle-btn {
-    background: var(--section-bg);
-    color: var(--text-color-lighter);
-    border: 1px solid var(--border-color-light);
-    border-radius: 50%;
-    width: 36px;
-    height: 36px;
-    font-size: 1.2em;
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 0;
-    transition: background-color 0.3s, color 0.3s, transform 0.2s;
-    box-shadow: 0 1px 3px var(--shadow-color);
-}
-#theme-toggle-btn:hover,
-#sound-toggle-btn:hover {
-    background-color: var(--section-bg-alt);
-    color: var(--text-color);
-}
-#theme-toggle-btn:active,
-#sound-toggle-btn:active {
-    transform: scale(0.95);
-}
-
-/* --- Estilos do Modal --- */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: var(--modal-overlay-bg);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    padding: 15px;
-    box-sizing: border-box;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-}
-.modal-overlay[style*="display: flex"] {
-    opacity: 1;
-    visibility: visible;
-}
-.modal-content {
-    background-color: var(--modal-content-bg);
-    padding: 25px 30px;
-    border-radius: 10px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.25);
-    text-align: center;
-    width: 100%;
-    max-width: 400px;
-    border: 1px solid var(--border-color);
-    transform: scale(0.95);
-    transition: transform 0.3s ease;
-}
-.modal-overlay[style*="display: flex"] .modal-content {
-    transform: scale(1);
-}
-.modal-content h2 {
-    color: var(--title-color);
-    margin-top: 0;
-    margin-bottom: 15px;
-    font-size: 1.4em;
-}
-.modal-content p {
-    color: var(--text-color);
-    margin-bottom: 20px;
-    font-size: 1em;
-    line-height: 1.5;
-}
-.modal-content .modal-note {
-    font-size: 0.85em;
-    color: var(--text-color-light);
-    margin-top: 15px;
-    margin-bottom: 0;
-}
-.modal-actions {
-    display: flex;
-    justify-content: space-around;
-    gap: 15px;
-    margin-top: 25px;
-}
-.modal-button {
-    border: 1px solid transparent;
-    padding: 12px 20px;
-    border-radius: 8px;
-    font-size: 1em;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s, transform 0.1s, border-color 0.2s;
-    flex-grow: 1;
-    box-shadow: 0 2px 4px var(--shadow-color);
-}
-.modal-button:hover {
-    transform: translateY(-2px);
-}
-.modal-button:active {
-    transform: scale(0.97) translateY(0);
-    box-shadow: 0 1px 2px var(--shadow-color-darker);
-}
-#select-2-players-btn {
-    background-color: var(--accent-nos);
-    color: #ffffff;
-    border-color: var(--accent-nos);
-}
-#select-2-players-btn:hover {
-    background-color: #53a1f0;
-    border-color: #53a1f0;
-}
-#select-4-players-btn {
-    background-color: var(--accent-eles);
-    color: #ffffff;
-    border-color: var(--accent-eles);
-}
-#select-4-players-btn:hover {
-    background-color: #ff7070;
-    border-color: #ff7070;
-}
+.top-config-buttons { position: absolute; top: 10px; right: 10px; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+#theme-toggle-btn, #sound-toggle-btn { background: var(--section-bg); color: var(--text-color-lighter); border: 1px solid var(--border-color-light); border-radius: 50%; width: 32px; height: 32px; font-size: 1.1em; cursor: pointer; display: flex; justify-content: center; align-items: center; padding: 0; transition: background-color 0.3s, color 0.3s, transform 0.2s; box-shadow: 0 1px 3px var(--shadow-color); }
+#theme-toggle-btn:hover, #sound-toggle-btn:hover { background-color: var(--section-bg-alt); color: var(--text-color); }
+#theme-toggle-btn:active, #sound-toggle-btn:active { transform: scale(0.95); }
 
 /* --- Cronômetro --- */
-.timer-section {
-    padding: 8px 12px;
-    margin-bottom: 15px;
-    background-color: var(--section-bg);
-    border:1px solid var(--border-color-light);
-    border-radius:8px;
-    text-align:center;
-}
-.timer-section h3 {
-    margin: 2px 0 4px 0;
-    font-size:.85em;
-    color: var(--text-color-lighter);
-}
-#current-timer-display {
-    font-size:1.6em;
-    font-weight:700;
-    color: var(--text-color);
-    font-family:'SF Mono', 'Monaco', 'Consolas', 'Courier New', Courier, monospace;
-    display:block;
-    margin: 0;
-    padding: 2px 0;
-    letter-spacing: 1px;
-}
+.timer-section{ padding: 5px 10px; margin-bottom: 15px; background-color: var(--section-bg); border:1px solid var(--border-color-light); border-radius:6px; text-align:center; }
+.timer-section h3{ margin: 2px 0 2px 0; font-size:.8em; color: var(--text-color-lighter); }
+#current-timer-display{ font-size:1.5em; font-weight:700; color: var(--text-color); font-family:'Courier New',Courier,monospace; display:block; margin: 0; padding: 2px 0; }
 
 /* --- Seção Partidas Ganhas --- */
-.match-wins-section {
-    background-color: var(--section-bg-alt);
-    padding:12px 15px;
-    border-radius:8px;
-    margin-bottom:15px;
-    border:1px solid var(--border-color-light)
-}
-.match-wins-section h2 {
-    margin:0 0 8px 0;
-    font-size:1.15em;
-    color: var(--text-color-light)
-}
-.match-wins-display {
-    font-size:1.5em;
-    font-weight:700;
-    color: var(--text-color)
-}
-.match-wins-display .nos { color: var(--accent-nos) }
-.match-wins-display .eles { color: var(--accent-eles) }
-.match-wins-display span { display:inline-block; min-width:30px }
+.match-wins-section{background-color: var(--section-bg-alt);padding:10px;border-radius:6px;margin-bottom:15px;border:1px solid var(--border-color-light)}
+.match-wins-section h2{margin:0 0 8px 0;font-size:1.1em;color: var(--text-color-light)}
+.match-wins-display{font-size:1.4em;font-weight:700;color: var(--text-color)}
+.match-wins-display .nos{color: var(--accent-nos)}
+.match-wins-display .eles{color: var(--accent-eles)}
+.match-wins-display span{display:inline-block;min-width:30px}
 
 /* --- Seção Embaralhador --- */
-.dealer-section {
-    padding: 10px 12px;
-    margin-bottom:15px;
-    background-color: var(--section-bg);
-    border:1px solid var(--border-color-light);
-    border-radius:8px;
-}
-.dealer-section h3 {
-    margin: 0 0 5px 0; /* Margem inferior para separar do nome */
-    font-size:1.05em;
-    color: var(--text-color-lighter);
-}
-#current-dealer-name {
-    font-size:1.35em;
-    font-weight:700;
-    color: var(--text-color);
-    min-height: 1.35em;
-    line-height: 1.35em;
-    margin: 0 0 10px 0; /* Margem inferior para separar do botão */
-    display: block;
-}
-#next-dealer-btn {
-    /* margin-top: 5px;  Removido, pois o #current-dealer-name já tem margem inferior */
-    padding:8px 16px;
-    font-size:.9em;
-    background-color: var(--button-bg);
-    color: var(--button-text);
-    border:1px solid var(--button-border);
-    border-bottom:3px solid var(--button-border);
-    border-radius:6px;
-    cursor:pointer;
-    transition:background-color .2s,transform .1s ease-out,box-shadow .1s ease-out;
-    box-shadow:0 2px 3px var(--shadow-color-darker);
-}
-#next-dealer-btn:hover { background-color: var(--button-hover-bg); }
-#next-dealer-btn:active {
-    background-color: var(--button-active-bg);
-    transform:translateY(1px);
-    border-bottom-width:2px;
-    box-shadow:0 1px 2px var(--shadow-color-darkest);
-}
+.dealer-section{ padding: 8px 10px; margin-bottom:15px; background-color: var(--section-bg); border:1px solid var(--border-color-light); border-radius:6px}
+.dealer-section h3{margin: 2px 0 3px 0; font-size:1em; color: var(--text-color-lighter);}
+#current-dealer-name{font-size:1.3em;font-weight:700;color: var(--text-color);min-height: 1.3em; line-height: 1.3em; margin: 0 0 5px 0;}
+#next-dealer-btn{ margin-top: 5px; padding:7px 14px; font-size:.85em; background-color: var(--text-color-lighter); color: var(--bg-color); border:1px solid var(--text-color-muted); border-bottom:3px solid var(--text-color-light); border-radius:6px; cursor:pointer; transition:background-color .2s,transform .1s ease-out,box-shadow .1s ease-out; box-shadow:0 2px 3px var(--shadow-color-darker); }
+#next-dealer-btn:hover{background-color: var(--text-color-light);}
+#next-dealer-btn:active{background-color: var(--text-color-muted);transform:translateY(2px);border-bottom-width:1px;box-shadow:0 1px 2px var(--shadow-color-darkest);}
 
 /* --- Seção Times --- */
-.teams {
-    display:flex;
-    justify-content:space-around;
-    gap:15px;
-    margin-bottom:10px;
-    flex-wrap:wrap
-}
-.team {
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    padding:15px;
-    border:1px solid var(--border-color-light);
-    background-color: var(--section-bg-hist);
-    border-radius:10px;
-    min-width:130px;
-    flex-basis:calc(50% - 10px);
-    flex-grow:1;
-    box-sizing:border-box;
-    margin-bottom:10px;
-    box-shadow: 0 2px 5px var(--shadow-color);
-}
-.team h2 {
-    margin-top:0;
-    margin-bottom:12px;
-    color: var(--text-color-light);
-    font-size:1.25em;
-    font-weight:600;
-}
-.score {
-    font-size:3.8em;
-    font-weight:700;
-    margin-bottom:18px;
-    min-height:1.2em;
-    line-height:1;
-    text-shadow:1px 1px 3px var(--shadow-color-darker)
-}
-.team .score.nos { color: var(--accent-nos) }
-.team .score.eles { color: var(--accent-eles) }
+.teams{display:flex;justify-content:space-around;gap:15px;margin-bottom:5px;flex-wrap:wrap}
+.team{display:flex;flex-direction:column;align-items:center;padding:15px;border:1px solid var(--border-color-light);background-color: var(--section-bg-hist);border-radius:8px;min-width:120px;flex-basis:45%;flex-grow:1;box-sizing:border-box;margin-bottom:10px}
+.team h2{margin-top:0;margin-bottom:10px;color: var(--text-color-light);font-size:1.2em;font-weight:700}
+.score{font-size:3.5em;font-weight:700;margin-bottom:15px;min-height:60px;line-height:1;text-shadow:1px 1px 3px var(--shadow-color-darker)}
+.team .score.nos{color: var(--accent-nos)}
+.team .score.eles{color: var(--accent-eles)}
 
-/* --- Controles (+/- e Truco) --- */
-.controls {
-    display:flex;
-    flex-wrap:wrap;
-    justify-content:center;
-    gap:8px;
-    margin-top: 5px;
-}
-.controls button {
-    border: 1px solid var(--button-border);
-    border-radius: 6px;
-    padding: 9px 12px;
-    font-size: 1.1em;
-    font-weight: 500;
-    cursor: pointer;
-    min-width: 42px;
-    transition: background-color .2s, transform .1s, box-shadow .1s;
-    user-select: none;
-    -webkit-user-select:none;
-    -ms-user-select:none;
-    background-color: var(--button-bg);
-    color: var(--button-text);
-    border-bottom: 2px solid var(--button-border);
-    box-shadow: 0 1px 2px var(--shadow-color);
-}
-.controls button:hover {
-    background-color: var(--button-hover-bg);
-    box-shadow: 0 2px 4px var(--shadow-color-darker);
-    transform: translateY(-1px);
-}
-.controls button:active {
-    background-color: var(--button-active-bg);
-    transform: scale(.97) translateY(0);
-    border-bottom-width: 1px;
-    box-shadow: inset 0 1px 2px var(--shadow-color-darkest);
-}
-.controls .add { color: var(--button-add-text); border-color: var(--button-add-border); background-color: var(--button-add-bg); border-bottom-color: var(--button-add-border-bottom); }
-.controls .add:hover { background-color: var(--button-add-hover); }
-.controls .add:active { background-color: var(--button-add-active); }
-
-.controls .remove { color: var(--button-remove-text); border-color: var(--button-remove-border); background-color: var(--button-remove-bg); border-bottom-color: var(--button-remove-border-bottom); }
-.controls .remove:hover { background-color: var(--button-remove-hover); }
-.controls .remove:active { background-color: var(--button-remove-active); }
-
-.controls .truco-btn { color: var(--button-truco-text); border-color: var(--button-truco-border); background-color: var(--button-truco-bg); border-bottom-color: var(--button-truco-border-bottom); }
-.controls .truco-btn:hover { background-color: var(--button-truco-hover); }
-.controls .truco-btn:active { background-color: var(--button-truco-active); }
-
+/* --- Controles (+/- e Truco) - Estilo Revertido --- */
+.controls{display:flex;flex-wrap:wrap;justify-content:center;gap:8px; margin-top: 5px;}
+.controls button{ border: 1px solid var(--button-border); border-radius: 5px; padding: 8px 10px; font-size: 1.1em; cursor: pointer; min-width: 40px; transition: background-color .2s, transform .1s; user-select: none;-webkit-user-select:none;-ms-user-select:none; background-color: var(--button-bg); color: var(--button-text); border-bottom: 1px solid var(--button-border); box-shadow: none; }
+.controls button:hover{ background-color: var(--button-hover-bg); }
+.controls button:active{ background-color: var(--button-active-bg); transform: scale(.97); }
+.controls .add{color: var(--button-add-text);border-color: var(--button-add-border);background-color: var(--button-add-bg); border-bottom-color: var(--button-add-border-bottom);}
+.controls .add:hover{background-color: var(--button-add-hover);}
+.controls .add:active{background-color: var(--button-add-active);}
+.controls .remove{color: var(--button-remove-text);border-color: var(--button-remove-border);background-color: var(--button-remove-bg); border-bottom-color: var(--button-remove-border-bottom);}
+.controls .remove:hover{background-color: var(--button-remove-hover);}
+.controls .remove:active{background-color: var(--button-remove-active);}
+.controls .truco-btn{color: var(--button-truco-text);border-color: var(--button-truco-border);background-color: var(--button-truco-bg); border-bottom-color: var(--button-truco-border-bottom);}
+.controls .truco-btn:hover{background-color: var(--button-truco-hover);}
+.controls .truco-btn:active{background-color: var(--button-truco-active);}
 
 /* --- Botão Desfazer --- */
-.undo-section {
-    text-align: center;
-    margin-top: 18px;
-    margin-bottom: 20px;
-}
-#undo-button {
-    padding: 10px 20px;
-    font-size: 0.95em;
-    font-weight: bold;
-    border-radius: 8px;
-    cursor: pointer;
-    border: 1px solid var(--button-undo-border);
-    border-bottom: 3px solid var(--button-undo-border-bottom);
-    transition: background-color .2s, transform .1s ease-out, box-shadow .1s ease-out;
-    background-color: var(--button-undo-bg);
-    color: var(--button-action-text);
-    box-shadow: 0 2px 4px var(--shadow-color-darker);
-}
-#undo-button:hover { background-color: var(--button-undo-hover); transform: translateY(-1px); }
-#undo-button:active {
-    background-color: var(--button-undo-active);
-    transform: translateY(1px);
-    border-bottom-width: 1px;
-    box-shadow: 0 1px 2px var(--shadow-color-darkest);
-}
-#undo-button:disabled {
-    background-color: var(--button-disabled-bg);
-    color: var(--button-disabled-text);
-    border: 1px solid var(--button-disabled-border);
-    border-bottom: 1px solid var(--button-disabled-border);
-    cursor: not-allowed;
-    opacity: 0.7;
-    box-shadow: none;
-    transform: none;
-}
+.undo-section { text-align: center; margin-top: 15px; margin-bottom: 20px; }
+#undo-button { padding: 9px 18px; font-size: 0.9em; font-weight: bold; border-radius: 6px; cursor: pointer; border: 1px solid var(--button-undo-border); border-bottom: 3px solid var(--button-undo-border-bottom); transition: background-color .2s, transform .1s ease-out, box-shadow .1s ease-out; background-color: var(--button-undo-bg); color: var(--button-action-text); box-shadow: 0 2px 3px var(--shadow-color-darker); }
+#undo-button:hover { background-color: var(--button-undo-hover); }
+#undo-button:active { background-color: var(--button-undo-active); transform: translateY(2px); border-bottom-width: 1px; box-shadow: 0 1px 2px var(--shadow-color-darkest); }
+#undo-button:disabled { background-color: var(--button-disabled-bg); color: var(--button-disabled-text); border: 1px solid var(--button-disabled-border); border-bottom: 1px solid var(--button-disabled-border); cursor: not-allowed; opacity: 0.7; box-shadow: none; transform: none; }
 
 /* --- Histórico de Pontos Anteriores --- */
-.history-section {
-    margin-top:0;
-    padding-top:15px;
-    border-top:1px solid var(--border-color);
-    text-align:center
-}
-.history-section h3 {
-    margin-top:0;
-    margin-bottom:10px;
-    font-size:1em;
-    color: var(--text-color-lighter)
-}
-.history-score {
-    font-size:1.2em;
-    color: var(--text-color-light)
-}
-.history-score span {
-    font-weight:700;
-    display:inline-block;
-    min-width:25px
-}
-.history-score .nos { color: var(--accent-nos) }
-.history-score .eles { color: var(--accent-eles) }
+.history-section{margin-top:0; padding-top:15px; border-top:1px solid var(--border-color);text-align:center}
+.history-section h3{margin-top:0;margin-bottom:10px;font-size:1em;color: var(--text-color-lighter)}
+.history-score{font-size:1.2em;color: var(--text-color-light)}
+.history-score span{font-weight:700;display:inline-block;min-width:25px}
+.history-score .nos{color: var(--accent-nos)}
+.history-score .eles{color: var(--accent-eles)}
 
-/* --- Botões de Ação --- */
-.action-buttons {
-    margin-top:25px;
-    padding-top:15px;
-    border-top:1px solid var(--border-color);
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:12px
-}
-.action-buttons button {
-    padding: 12px 22px;
-    font-size: 0.95em;
-    font-weight: bold;
-    border-radius: 8px;
-    cursor: pointer;
-    border-style: solid;
-    border-width: 1px;
-    border-bottom-width: 3px;
-    transition: background-color .2s, transform .1s ease-out, box-shadow .1s ease-out;
-    width: 85%;
-    max-width: 300px;
-    box-shadow: 0 2px 4px var(--shadow-color-darker);
-}
-.action-buttons button:hover {
-    transform: translateY(-1px);
-}
-.action-buttons button:active {
-    transform: translateY(1px);
-    border-bottom-width: 1px;
-    box-shadow: 0 1px 2px var(--shadow-color-darkest);
-}
-
-#edit-teams-btn { background-color: var(--button-edit-bg); border-color: var(--button-edit-border); border-bottom-color: var(--button-edit-border-bottom); color: var(--button-action-text); }
+/* --- Botões de Ação (Reset / Editar Nomes) --- */
+.action-buttons{margin-top:25px;padding-top:15px;border-top:1px solid var(--border-color);display:flex;flex-direction:column;align-items:center;gap:12px}
+.action-buttons button{ padding: 11px 20px; font-size: 0.95em; font-weight: bold; border-radius: 6px; cursor: pointer; border-style: solid; border-width: 1px; border-bottom-width: 3px; transition: background-color .2s, transform .1s ease-out, box-shadow .1s ease-out; width: 80%; max-width: 280px; color: var(--button-action-text); box-shadow: 0 2px 4px var(--shadow-color-darker); }
+.action-buttons button:active{ transform: translateY(2px); border-bottom-width: 1px; box-shadow: 0 1px 2px var(--shadow-color-darkest); }
+#edit-teams-btn { background-color: var(--button-edit-bg); border-color: var(--button-edit-border); border-bottom-color: var(--button-edit-border-bottom);}
 #edit-teams-btn:hover { background-color: var(--button-edit-hover); }
 #edit-teams-btn:active { background-color: var(--button-edit-active); }
-
-.reset-game-button { background-color: var(--button-reset-game-bg); border-color: var(--button-reset-game-border); border-bottom-color: var(--button-reset-game-border-bottom); color: var(--button-action-text); }
-.reset-game-button:hover { background-color: var(--button-reset-game-hover); }
-.reset-game-button:active { background-color: var(--button-reset-game-active); }
-
-#change-game-mode-btn { background-color: var(--button-change-mode-bg); border-color: var(--button-change-mode-border); border-bottom-color: var(--button-change-mode-border-bottom); color: var(--button-action-text-light); }
-body.light-theme #change-game-mode-btn { color: var(--button-action-text); }
-#change-game-mode-btn:hover { background-color: var(--button-change-mode-hover); }
-#change-game-mode-btn:active { background-color: var(--button-change-mode-active); }
-
-.reset-all-button { background-color: var(--button-reset-all-bg); border-color: var(--button-reset-all-border); border-bottom-color: var(--button-reset-all-border-bottom); color: var(--button-action-text); }
-.reset-all-button:hover { background-color: var(--button-reset-all-hover); }
-.reset-all-button:active { background-color: var(--button-reset-all-active); }
-
-#export-history-btn { background-color: var(--button-export-bg); border-color: var(--button-export-border); border-bottom-color: var(--button-export-border-bottom); color: var(--button-action-text-light); }
-body.light-theme #export-history-btn { color: var(--button-action-text); }
-#export-history-btn:hover { background-color: var(--button-export-hover); }
-#export-history-btn:active { background-color: var(--button-export-active); }
-
+.reset-game-button{ background-color: var(--button-reset-game-bg); border-color: var(--button-reset-game-border); border-bottom-color: var(--button-reset-game-border-bottom);}
+.reset-game-button:hover{ background-color: var(--button-reset-game-hover); }
+.reset-game-button:active{ background-color: var(--button-reset-game-active); }
+.reset-all-button{ background-color: var(--button-reset-all-bg); border-color: var(--button-reset-all-border); border-bottom-color: var(--button-reset-all-border-bottom);}
+.reset-all-button:hover{ background-color: var(--button-reset-all-hover); }
+.reset-all-button:active{ background-color: var(--button-reset-all-active); }
 
 /* --- Histórico de Duração das Partidas --- */
-.duration-history-section {
-    margin-top: 20px;
-    margin-bottom: 20px;
-    padding: 15px;
-    background-color: var(--section-bg-hist);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    text-align: left;
-}
-.duration-history-section h4 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    font-size: 0.95em;
-    color: var(--text-color-light);
-    text-align: center;
-}
-#duration-history-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    max-height: 120px;
-    overflow-y: auto;
-    font-size: 0.9em;
-    color: var(--text-color-light);
-    font-family:'SF Mono', 'Monaco', 'Consolas', 'Courier New', Courier, monospace;
-}
-#duration-history-list li {
-    padding: 4px 6px;
-    border-bottom: 1px dashed var(--border-color-light);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: background-color 0.2s;
-}
-#duration-history-list li:hover {
-    background-color: var(--section-bg);
-}
-#duration-history-list li:last-child { border-bottom: none; }
-
-.winner-icon {
-    font-size: 1em;
-    font-weight: bold;
-    margin-left: 8px;
-    font-style: normal;
-    display: inline-block;
-}
-.winner-icon.nos { color: var(--accent-nos); }
-.winner-icon.eles { color: var(--accent-eles); }
+ .duration-history-section {
+     margin-top: 20px;
+     margin-bottom: 20px;
+     padding: 15px;
+     background-color: var(--section-bg-hist);
+     border: 1px solid var(--border-color);
+     border-radius: 6px;
+     text-align: left;
+ }
+ .duration-history-section h4 { margin-top: 0; margin-bottom: 10px; font-size: 0.95em; color: var(--text-color-light); text-align: center; }
+ #duration-history-list { list-style: none; padding: 0; margin: 0; max-height: 120px; overflow-y: auto; font-size: 0.9em; color: var(--text-color-light); font-family: 'Courier New', Courier, monospace; }
+ #duration-history-list li {
+     padding: 3px 5px;
+     border-bottom: 1px dashed var(--border-color-light);
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+ }
+ #duration-history-list li:last-child { border-bottom: none; }
+ /* Ícone de Vencedor no Histórico (Letra 'V' com Cor) */
+ .winner-icon {
+     font-size: 1em; /* Tamanho da letra 'V' */
+     font-weight: bold; /* Deixa o 'V' em negrito */
+     margin-left: 8px;
+     font-style: normal;
+     display: inline-block;
+ }
+ .winner-icon.nos { color: var(--accent-nos); }
+ .winner-icon.eles { color: var(--accent-eles); }
 
 
 /* --- Estilo do Footer de Crédito --- */
 .footer-credit {
-    margin-top: 25px;
+    margin-top: 20px;
     padding-top: 15px;
     border-top: 1px solid var(--border-color);
     font-size: 0.8em;
-    color: var(--text-color-muted);
+    color: var(--text-color-muted); /* Usa variável */
     text-align: center;
 }
 .footer-credit p { margin: 0; padding: 0; }
-
-/* Scrollbar customizada (opcional, para Webkit) */
-::-webkit-scrollbar {
-    width: 8px;
-}
-::-webkit-scrollbar-track {
-    background: var(--section-bg);
-    border-radius: 10px;
-}
-::-webkit-scrollbar-thumb {
-    background: var(--border-color-light);
-    border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover {
-    background: var(--text-color-lighter);
-}
