@@ -256,7 +256,11 @@ function getPlayerNames(isModeChangeOrInitialSetup = false) {
     const numPlayersToDefine = gameMode;
     const newPlayerNames = [];
     let msgAction = isModeChangeOrInitialSetup ? `Definindo jogadores para o modo de ${numPlayersToDefine} jogadores:` : `Editando nomes dos jogadores (${numPlayersToDefine}):`;
-    alert(msgAction);
+    // Não mostra alerta se for apenas para inicializar a voz
+    if (!(isModeChangeOrInitialSetup && playerNames.length === numPlayersToDefine && playerNames.every(name => name.startsWith("Jogador ")))) {
+        alert(msgAction);
+    }
+
 
     for (let i = 0; i < numPlayersToDefine; i++) {
         let defaultNameSuggestion = `Jogador ${i + 1}`;
@@ -266,10 +270,14 @@ function getPlayerNames(isModeChangeOrInitialSetup = false) {
         if (playerName === null) {
             if (isModeChangeOrInitialSetup || oldPlayerNames.length !== numPlayersToDefine || !oldPlayerNames.every(name => name && name.trim() !== "")) {
                 playerNames = Array(numPlayersToDefine).fill(null).map((_, j) => `Jogador ${j + 1}`);
-                alert("Configuração cancelada/inválida. Usando nomes padrão.");
+                if (!(isModeChangeOrInitialSetup && playerNames.length === numPlayersToDefine && playerNames.every(name => name.startsWith("Jogador ")))) {
+                    alert("Configuração cancelada/inválida. Usando nomes padrão.");
+                }
             } else {
                 playerNames = oldPlayerNames;
-                alert("Edição cancelada. Nomes anteriores mantidos.");
+                 if (!(isModeChangeOrInitialSetup && playerNames.length === numPlayersToDefine && playerNames.every(name => name.startsWith("Jogador ")))) {
+                    alert("Edição cancelada. Nomes anteriores mantidos.");
+                }
             }
             updateScoreSectionTitles(); updateDealerDisplay(); return;
         }
@@ -282,7 +290,12 @@ function getPlayerNames(isModeChangeOrInitialSetup = false) {
     saveData(STORAGE_KEYS.PLAYER_NAMES, playerNames);
     saveData(STORAGE_KEYS.DEALER_INDEX, currentDealerIndex);
     updateDealerDisplay();
-    speakText(isModeChangeOrInitialSetup ? `Modo de ${gameMode} jogadores configurado. ${playerNames[currentDealerIndex] || `Jogador ${currentDealerIndex + 1}`} embaralha.` : "Nomes dos jogadores atualizados.");
+
+    // Só fala se não for a inicialização silenciosa da voz
+     if (!(isModeChangeOrInitialSetup && playerNames.length === numPlayersToDefine && playerNames.every(name => name.startsWith("Jogador ")))) {
+        speakText(isModeChangeOrInitialSetup ? `Modo de ${gameMode} jogadores configurado. ${playerNames[currentDealerIndex] || `Jogador ${currentDealerIndex + 1}`} embaralha.` : "Nomes dos jogadores atualizados.");
+    }
+
 
     if (isModeChangeOrInitialSetup && !gameStartTime && playerNames.length === numPlayersToDefine) {
         startTimer();
@@ -323,6 +336,7 @@ function advanceDealer(speakAnnounce = false, callback = null) {
 function changeScore(team, amount, speakPointText = null) {
     if (isGameEffectivelyOver) {
         // A fala e o reinício automático são tratados em processMatchEnd
+        // speakText("A partida terminou. Uma nova partida será iniciada em breve.", true); // Removido para evitar fala duplicada
         return false;
     }
 
@@ -447,7 +461,6 @@ function processMatchEnd(winnerTeam) {
         updateDurationHistoryDisplay();
     }
     undoState = null; if (undoButton) undoButton.disabled = true;
-    // updateCurrentGameDisplay(); // Já chamado em changeScore
 
     let winnerNameDisplay, winningTerm = "ganhou";
     if (gameMode === 4) {
@@ -462,13 +475,11 @@ function processMatchEnd(winnerTeam) {
         const p2Display = gameMode === 4 ? teamNameEles : (playerNames[1] || "J2");
         alertMsg += `${p1Display}: ${matchesWonNos}\n${p2Display}: ${matchesWonEles}`;
         
-        // O alerta pausa a execução do JS. prepareNextGame() será chamado DEPOIS que o usuário fechar o alerta.
         alert(alertMsg);
         updateMatchWinsDisplay();
         prepareNextGame(); // AUTOMATICAMENTE PREPARA A PRÓXIMA PARTIDA APÓS O ALERT
     };
 
-    // Atraso para a fala antes do alerta
     setTimeout(() => {
         if (winnerTeam === 'nos') matchesWonNos++; else matchesWonEles++;
         saveData(STORAGE_KEYS.MATCHES_NOS, matchesWonNos);
@@ -492,7 +503,7 @@ function prepareNextGame(isModeChange = false) {
         if (gameMode === 4) { teamNameNos = "Nós"; teamNameEles = "Eles"; }
         getPlayerNames(true);
     } else {
-        saveGameState(); // Salva o estado zerado se não for mudança de modo
+        saveGameState();
         if (playerNames.length === gameMode && playerNames.every(name => name && name.trim() !== "")) {
             setTimeout(startTimer, 150);
         } else if (playerNames.length === gameMode) {
@@ -600,7 +611,8 @@ function addEventListeners() {
     soundToggleButton?.addEventListener('click', toggleSound);
     nextDealerButtonElement?.addEventListener('click', () => {
         if (isGameEffectivelyOver) {
-            speakText("A partida terminou. Uma nova partida será iniciada em breve.", true);
+            // A fala e o reinício automático são tratados em processMatchEnd
+            // speakText("A partida terminou. Uma nova partida será iniciada em breve.", true);
             return;
         }
         advanceDealer(true);
@@ -654,8 +666,9 @@ function initializeApp() {
     toggleScoreControls(!isGameEffectivelyOver);
 
     const numExpectedPlayers = gameMode;
-    // Verifica se os nomes estão definidos (não são vazios ou apenas espaços)
-    if (playerNames.length !== numExpectedPlayers || !playerNames.every(name => name && name.trim() !== "")) {
+    // Se os nomes não estiverem definidos ou forem os padrão "Jogador X", pede para definir.
+    // A voz será iniciada aqui se getPlayerNames for chamado e o usuário interagir com o prompt.
+    if (playerNames.length !== numExpectedPlayers || !playerNames.every(name => name && name.trim() !== "") || playerNames.some(name => name.startsWith("Jogador "))) {
         setTimeout(() => getPlayerNames(true), 300);
     } else {
         resetCurrentTimerDisplay();
