@@ -1,20 +1,21 @@
 // --- Variáveis Globais ---
 let scoreNos = 0, scoreEles = 0;
-let prevScoreNos = 0, prevScoreEles = 0; // Placar anterior do jogo atual
-let isInitialState = true; // Controla se é a primeira ação de pontuação do jogo
-const maxScore = 12; // Pontuação máxima para vencer uma partida
-let matchesWonNos = 0, matchesWonEles = 0; // Contador de partidas ganhas
-let playerNames = []; // Array para os nomes dos 4 jogadores
-let currentDealerIndex = 0; // Índice do jogador que está embaralhando
-let timerIntervalId = null; // ID do intervalo do cronômetro
-let gameStartTime = null; // Timestamp do início do jogo atual
-let matchDurationHistory = []; // Histórico da duração das partidas concluídas
-let undoState = null; // Objeto para armazenar o estado anterior para o "Desfazer"
-let teamNameNos = "Nós"; // Nome padrão da equipe 1
-let teamNameEles = "Eles"; // Nome padrão da equipe 2
-let currentTheme = 'dark'; // Tema atual (dark/light)
-let wakeLock = null; // Referência para a API Wake Lock
-let isSoundOn = true; // Controle de som para narração
+let prevScoreNos = 0, prevScoreEles = 0;
+let isInitialState = true;
+const maxScore = 12;
+let matchesWonNos = 0, matchesWonEles = 0;
+let playerNames = []; // Modo 4: [J1, J2, J3, J4], Modo 2: [P1, P2]
+let currentDealerIndex = 0; // Alterna entre 0-3 (4P) ou 0-1 (2P)
+let timerIntervalId = null;
+let gameStartTime = null;
+let matchDurationHistory = [];
+let undoState = null;
+let teamNameNos = "Nós"; // Usado apenas no modo 4 jogadores para UI
+let teamNameEles = "Eles"; // Usado apenas no modo 4 jogadores para UI
+let currentTheme = 'dark';
+let wakeLock = null;
+let isSoundOn = true;
+let gameMode = 4; // 4 para 4 jogadores, 2 para 2 jogadores. Padrão 4.
 
 // --- Constantes Chaves localStorage ---
 const STORAGE_KEYS = {
@@ -31,37 +32,42 @@ const STORAGE_KEYS = {
     TEAM_NAME_ELES: 'truco_acker_teamNameEles',
     DURATION_HISTORY: 'truco_acker_durationHistory',
     THEME: 'truco_acker_theme',
-    SOUND_ON: 'truco_acker_soundOn'
+    SOUND_ON: 'truco_acker_soundOn',
+    GAME_MODE: 'truco_acker_gameMode'
 };
 
-// --- Elementos do DOM (cacheados para performance) ---
+// --- Elementos do DOM ---
 let scoreNosElement, scoreElesElement, prevScoreNosElement, prevScoreElesElement,
     matchWinsNosElement, matchWinsElesElement, dealerNameElement, currentTimerElement,
     durationHistoryListElement, undoButton, teamNameNosElement, teamNameElesElement,
     themeToggleButton, soundToggleButton, bodyElement, themeMeta, mainTitleElement,
-    editPlayersButton, changeGameModeButton, exportHistoryButton, footerCreditElement;
+    editPlayersButton, editTeamsButton, changeGameModeButton, exportHistoryButton, footerCreditElement,
+    dealerSectionElement, nextDealerButtonElement;
 
-// --- Funções de Armazenamento Local (localStorage) ---
+// --- Funções de Armazenamento Local ---
 function saveData(key, data) {
-    try {
-        localStorage.setItem(key, JSON.stringify(data));
-    } catch (e) {
-        console.error("Erro ao salvar dados no localStorage:", key, e);
-    }
+    try { localStorage.setItem(key, JSON.stringify(data)); }
+    catch (e) { console.error("Erro ao salvar dados:", key, e); }
 }
-
 function loadData(key, defaultValue = null) {
     try {
         const data = localStorage.getItem(key);
         return data ? JSON.parse(data) : defaultValue;
     } catch (e) {
-        console.error("Erro ao carregar dados do localStorage:", key, e);
+        console.error("Erro ao carregar dados:", key, e);
         return defaultValue;
     }
 }
 
+function saveGameMode() {
+    saveData(STORAGE_KEYS.GAME_MODE, gameMode);
+}
+
+function loadGameMode() {
+    gameMode = loadData(STORAGE_KEYS.GAME_MODE, 4);
+}
+
 function saveGameState() {
-    // Salva o estado relevante do jogo no localStorage
     saveData(STORAGE_KEYS.SCORE_NOS, scoreNos);
     saveData(STORAGE_KEYS.SCORE_ELES, scoreEles);
     saveData(STORAGE_KEYS.PREV_SCORE_NOS, prevScoreNos);
@@ -70,17 +76,18 @@ function saveGameState() {
     saveData(STORAGE_KEYS.MATCHES_NOS, matchesWonNos);
     saveData(STORAGE_KEYS.MATCHES_ELES, matchesWonEles);
     saveData(STORAGE_KEYS.PLAYER_NAMES, playerNames);
-    saveData(STORAGE_KEYS.DEALER_INDEX, currentDealerIndex);
-    saveData(STORAGE_KEYS.TEAM_NAME_NOS, teamNameNos);
-    saveData(STORAGE_KEYS.TEAM_NAME_ELES, teamNameEles);
+    saveData(STORAGE_KEYS.DEALER_INDEX, currentDealerIndex); // Salva dealer para ambos os modos
+    if (gameMode === 4) { // Salva nomes de equipe apenas no modo 4
+        saveData(STORAGE_KEYS.TEAM_NAME_NOS, teamNameNos);
+        saveData(STORAGE_KEYS.TEAM_NAME_ELES, teamNameEles);
+    }
     saveData(STORAGE_KEYS.DURATION_HISTORY, matchDurationHistory);
 }
 
 function loadGameSettings() {
-    const savedTheme = loadData(STORAGE_KEYS.THEME, 'dark');
-    currentTheme = savedTheme;
-    const savedSound = loadData(STORAGE_KEYS.SOUND_ON, true);
-    isSoundOn = savedSound;
+    currentTheme = loadData(STORAGE_KEYS.THEME, 'dark');
+    isSoundOn = loadData(STORAGE_KEYS.SOUND_ON, true);
+    loadGameMode();
 }
 
 function loadGameData() {
@@ -92,51 +99,85 @@ function loadGameData() {
     matchesWonNos = loadData(STORAGE_KEYS.MATCHES_NOS, 0);
     matchesWonEles = loadData(STORAGE_KEYS.MATCHES_ELES, 0);
     playerNames = loadData(STORAGE_KEYS.PLAYER_NAMES, []);
-    currentDealerIndex = loadData(STORAGE_KEYS.DEALER_INDEX, 0);
-    teamNameNos = loadData(STORAGE_KEYS.TEAM_NAME_NOS, "Nós");
-    teamNameEles = loadData(STORAGE_KEYS.TEAM_NAME_ELES, "Eles");
+    currentDealerIndex = loadData(STORAGE_KEYS.DEALER_INDEX, 0); // Carrega dealer para ambos os modos
+
+    if (gameMode === 4) {
+        teamNameNos = loadData(STORAGE_KEYS.TEAM_NAME_NOS, "Nós");
+        teamNameEles = loadData(STORAGE_KEYS.TEAM_NAME_ELES, "Eles");
+    } else {
+        // No modo 2, teamNameNos e teamNameEles não são usados para títulos de seção de placar.
+        // Os nomes dos jogadores são usados diretamente.
+    }
     matchDurationHistory = loadData(STORAGE_KEYS.DURATION_HISTORY, []);
 }
 
 function clearSavedGameData() {
-    const keysToClear = [
-        STORAGE_KEYS.SCORE_NOS, STORAGE_KEYS.SCORE_ELES,
-        STORAGE_KEYS.PREV_SCORE_NOS, STORAGE_KEYS.PREV_SCORE_ELES,
-        STORAGE_KEYS.IS_INITIAL, STORAGE_KEYS.MATCHES_NOS,
-        STORAGE_KEYS.MATCHES_ELES, STORAGE_KEYS.PLAYER_NAMES,
-        STORAGE_KEYS.DEALER_INDEX, STORAGE_KEYS.TEAM_NAME_NOS,
-        STORAGE_KEYS.TEAM_NAME_ELES, STORAGE_KEYS.DURATION_HISTORY
-    ];
+    const keysToClear = Object.values(STORAGE_KEYS).filter(key =>
+        key !== STORAGE_KEYS.THEME && key !== STORAGE_KEYS.SOUND_ON && key !== STORAGE_KEYS.GAME_MODE
+    );
     keysToClear.forEach(key => localStorage.removeItem(key));
 }
 
-// --- Funções de Atualização da Interface do Usuário (Display) ---
+// --- Funções de UI ---
 function updateMainTitle() {
     if (mainTitleElement) mainTitleElement.textContent = "Marcador Truco Acker Pro";
 }
-
 function updateFooterCredit() {
     if (footerCreditElement) footerCreditElement.textContent = "Desenvolvido por Jacson A Duarte";
 }
-
 function updateCurrentGameDisplay() {
     if (scoreNosElement) scoreNosElement.textContent = scoreNos;
     if (scoreElesElement) scoreElesElement.textContent = scoreEles;
     if (prevScoreNosElement) prevScoreNosElement.textContent = isInitialState ? '-' : prevScoreNos;
     if (prevScoreElesElement) prevScoreElesElement.textContent = isInitialState ? '-' : prevScoreEles;
 }
-
 function updateMatchWinsDisplay() {
     if (matchWinsNosElement) matchWinsNosElement.textContent = matchesWonNos;
     if (matchWinsElesElement) matchWinsElesElement.textContent = matchesWonEles;
 }
 
 function updateDealerDisplay() {
-    if (dealerNameElement) {
-        dealerNameElement.textContent = (playerNames.length === 4 && playerNames[currentDealerIndex])
-            ? playerNames[currentDealerIndex]
-            : "-- Defina os Jogadores --";
+    if (!dealerNameElement) return;
+    const numExpectedPlayers = gameMode;
+    if (playerNames.length === numExpectedPlayers && playerNames[currentDealerIndex]) {
+        dealerNameElement.textContent = playerNames[currentDealerIndex];
+    } else {
+        dealerNameElement.textContent = `-- Defina os ${numExpectedPlayers} Jogadores --`;
     }
+}
+
+function updateScoreSectionTitles() {
+    if (gameMode === 4) {
+        if (teamNameNosElement) teamNameNosElement.textContent = teamNameNos;
+        if (teamNameElesElement) teamNameElesElement.textContent = teamNameEles;
+    } else { // Modo 2 jogadores
+        if (teamNameNosElement) teamNameNosElement.textContent = playerNames[0] || "Jogador 1";
+        if (teamNameElesElement) teamNameElesElement.textContent = playerNames[1] || "Jogador 2";
+    }
+    updateDurationHistoryDisplay();
+}
+
+function updateUIBasedOnMode() {
+    if (!dealerSectionElement || !editTeamsButton || !changeGameModeButton || !editPlayersButton || !nextDealerButtonElement) return;
+
+    // Seção do Embaralhador e botão Próximo Embaralhador ficam sempre visíveis
+    dealerSectionElement.classList.remove('hidden');
+    nextDealerButtonElement.classList.remove('hidden');
+    // Opcional: Alterar o texto do título da seção do embaralhador se desejar
+    // if(dealerSectionElement.querySelector('h3')) dealerSectionElement.querySelector('h3').textContent = gameMode === 4 ? "Embaralhador Atual:" : "Quem Embaralha:";
+
+
+    if (gameMode === 4) {
+        editTeamsButton.classList.remove('hidden');
+        editPlayersButton.textContent = "Editar Nomes dos Jogadores (4)";
+        changeGameModeButton.textContent = "Mudar para Modo 2 Jogadores";
+    } else { // gameMode === 2
+        editTeamsButton.classList.add('hidden'); // Oculta apenas no modo 2 jogadores
+        editPlayersButton.textContent = "Editar Nomes dos Jogadores (2)";
+        changeGameModeButton.textContent = "Mudar para Modo 4 Jogadores";
+    }
+    updateScoreSectionTitles();
+    updateDealerDisplay();
 }
 
 function updateDurationHistoryDisplay() {
@@ -144,65 +185,51 @@ function updateDurationHistoryDisplay() {
     durationHistoryListElement.innerHTML = '';
     if (matchDurationHistory.length === 0) {
         durationHistoryListElement.innerHTML = '<li>Nenhuma partida concluída nesta sessão.</li>';
-        durationHistoryListElement.style.textAlign = 'center';
-        durationHistoryListElement.style.color = 'var(--text-color-muted)';
         return;
     }
-    durationHistoryListElement.style.textAlign = 'left';
-    durationHistoryListElement.style.color = 'var(--text-color-light)';
-
     for (let i = matchDurationHistory.length - 1; i >= 0; i--) {
         const entry = matchDurationHistory[i];
         const formattedTime = formatTime(entry.duration);
         const listItem = document.createElement('li');
-        const winnerName = entry.winner === 'nos' ? teamNameNos : teamNameEles;
-        listItem.textContent = `Partida ${i + 1} (${winnerName}): ${formattedTime} `;
-
+        let winnerDisplayName;
+        // Usa nomes de equipe/jogador corretos com base no modo da partida registrada
+        if (entry.mode === 4) {
+            winnerDisplayName = entry.winner === 'nos' ? teamNameNos : teamNameEles;
+        } else { // entry.mode === 2
+            // Para partidas antigas de 2 jogadores, precisamos ter certeza que playerNames está carregado corretamente
+            // ou ter uma forma de buscar os nomes daquele momento. Por simplicidade, usamos os atuais se disponíveis.
+            const p1Name = (entry.playerNames && entry.playerNames[0]) ? entry.playerNames[0] : (playerNames[0] || "Jogador 1");
+            const p2Name = (entry.playerNames && entry.playerNames[1]) ? entry.playerNames[1] : (playerNames[1] || "Jogador 2");
+            winnerDisplayName = entry.winner === 'nos' ? p1Name : p2Name;
+        }
+        listItem.textContent = `Partida ${i + 1} (${winnerDisplayName} - ${entry.mode}P): ${formattedTime} `;
         const winnerIcon = document.createElement('span');
         winnerIcon.classList.add('winner-icon', entry.winner);
         winnerIcon.textContent = 'V';
-        winnerIcon.setAttribute('aria-label', `Vencedor: ${winnerName}`);
         listItem.appendChild(winnerIcon);
         durationHistoryListElement.appendChild(listItem);
     }
-}
-
-function updateTeamNameDisplay() {
-    if (teamNameNosElement) teamNameNosElement.textContent = teamNameNos;
-    if (teamNameElesElement) teamNameElesElement.textContent = teamNameEles;
-    updateDurationHistoryDisplay();
 }
 
 function updateSoundButtonIcon() {
     if (soundToggleButton) soundToggleButton.textContent = isSoundOn ? '🔊' : '🔇';
 }
 
-// --- Síntese de Voz (MODIFICADA para incluir callback) ---
+// --- Síntese de Voz ---
 function speakText(text, cancelPrevious = true, callback = null) {
     if (!isSoundOn || !('speechSynthesis' in window)) {
-        if (callback) callback(); // Chama o callback mesmo se o som estiver desligado ou indisponível
+        if (callback) callback();
         return;
     }
-
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'pt-BR';
-    utterance.rate = 1.0;
-    utterance.pitch = 1.0;
-
+    utterance.lang = 'pt-BR'; utterance.rate = 1.0; utterance.pitch = 1.0;
     if (callback) {
-        utterance.onend = callback; // Executa o callback quando a fala terminar
-        utterance.onerror = callback; // Executa o callback também em caso de erro, para não bloquear a próxima ação
+        utterance.onend = callback;
+        utterance.onerror = () => { console.warn("Erro na síntese de voz."); if (callback) callback(); };
     }
-
     if (cancelPrevious && window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel();
-        // O cancelamento é assíncrono. Adicionar um pequeno delay antes de falar
-        // pode ajudar, mas o onend no utterance anterior (se houvesse) seria mais robusto.
-        // Para este caso, como estamos cancelando TUDO, podemos falar logo em seguida,
-        // mas o ideal é que a lógica de encadeamento use os callbacks.
-        setTimeout(() => {
-            window.speechSynthesis.speak(utterance);
-        }, 50); // Pequeno delay para o cancelamento processar
+        setTimeout(() => window.speechSynthesis.speak(utterance), 50);
     } else {
         window.speechSynthesis.speak(utterance);
     }
@@ -211,145 +238,128 @@ function speakText(text, cancelPrevious = true, callback = null) {
 // --- Cronômetro ---
 function formatTime(ms) {
     if (ms === null || ms < 0) return "--:--";
-    let totalSeconds = Math.floor(ms / 1000);
-    let hours = Math.floor(totalSeconds / 3600);
-    let minutes = Math.floor((totalSeconds % 3600) / 60);
-    let seconds = totalSeconds % 60;
-    minutes = String(minutes).padStart(2, '0');
-    seconds = String(seconds).padStart(2, '0');
-    return (hours > 0) ? `${String(hours).padStart(2, '0')}:${minutes}:${seconds}` : `${minutes}:${seconds}`;
+    let s = Math.floor(ms / 1000), h = Math.floor(s / 3600);
+    s %= 3600; let m = Math.floor(s / 60); s %= 60;
+    return `${h > 0 ? String(h).padStart(2, '0') + ':' : ''}${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
-
 function startTimer() {
-    stopTimer();
-    gameStartTime = Date.now();
-    if (currentTimerElement) currentTimerElement.textContent = "00:00";
+    stopTimer(); gameStartTime = Date.now();
+    if (currentTimerElement) currentTimerElement.textContent = formatTime(0);
     timerIntervalId = setInterval(() => {
-        if (gameStartTime && currentTimerElement) {
-            const elapsed = Date.now() - gameStartTime;
-            currentTimerElement.textContent = formatTime(elapsed);
-        } else {
-            clearInterval(timerIntervalId);
-            timerIntervalId = null;
-        }
+        if (gameStartTime && currentTimerElement) currentTimerElement.textContent = formatTime(Date.now() - gameStartTime);
+        else { clearInterval(timerIntervalId); timerIntervalId = null; }
     }, 1000);
     requestWakeLock();
 }
-
 function stopTimer() {
-    let durationMs = null;
-    if (gameStartTime) durationMs = Date.now() - gameStartTime;
-    if (timerIntervalId) {
-        clearInterval(timerIntervalId);
-        timerIntervalId = null;
-    }
-    gameStartTime = null;
-    releaseWakeLock();
-    return durationMs;
+    let d = null; if (gameStartTime) d = Date.now() - gameStartTime;
+    if (timerIntervalId) { clearInterval(timerIntervalId); timerIntervalId = null; }
+    gameStartTime = null; releaseWakeLock(); return d;
 }
-
-function resetCurrentTimerDisplay() {
-    stopTimer();
-    if (currentTimerElement) currentTimerElement.textContent = "00:00";
-}
+function resetCurrentTimerDisplay() { stopTimer(); if (currentTimerElement) currentTimerElement.textContent = formatTime(0); }
 
 // --- Wake Lock API ---
 async function requestWakeLock() {
-    if ('wakeLock' in navigator) {
-        try {
-            if (!wakeLock) {
-                wakeLock = await navigator.wakeLock.request('screen');
-                wakeLock.addEventListener('release', () => { wakeLock = null; });
-            }
-        } catch (err) { wakeLock = null; }
-    }
+    if ('wakeLock' in navigator) try { if (!wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => wakeLock = null); } } catch (e) { wakeLock = null; }
 }
-
-async function releaseWakeLock() {
-    if (wakeLock) {
-        try { await wakeLock.release(); } catch (err) { /* Ignora */ }
-        finally { wakeLock = null; }
-    }
-}
-
-document.addEventListener('visibilitychange', async () => {
-    if (document.visibilityState === 'visible' && gameStartTime) await requestWakeLock();
-});
+async function releaseWakeLock() { if (wakeLock) try { await wakeLock.release(); } catch (e) { /*Ignora*/ } finally { wakeLock = null; } }
+document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && gameStartTime) await requestWakeLock(); });
 
 // --- Gerenciamento de Nomes ---
-function getPlayerNames(isInitialSetup = false) {
+function getPlayerNames(isModeChangeOrInitialSetup = false) {
     const oldPlayerNames = [...playerNames];
+    const numPlayersToDefine = gameMode;
     const newPlayerNames = [];
-    let msg = isInitialSetup ? "Vamos definir os 4 jogadores para o rodízio do embaralhador:" : "Editando nomes dos jogadores:";
-    alert(msg);
+    let msgAction = isModeChangeOrInitialSetup ? `Definindo jogadores para o modo de ${numPlayersToDefine} jogadores:` : `Editando nomes dos jogadores (${numPlayersToDefine}):`;
+    alert(msgAction);
 
-    for (let i = 0; i < 4; i++) {
-        let defaultName = (oldPlayerNames[i] && !isInitialSetup && oldPlayerNames[i] !== `Jogador ${i + 1}`) ? oldPlayerNames[i] : `Jogador ${i + 1}`;
-        let playerName = prompt(`Nome do Jogador ${i + 1}:`, defaultName);
+    for (let i = 0; i < numPlayersToDefine; i++) {
+        let defaultNameSuggestion = `Jogador ${i + 1}`;
+        // Se está editando e já existe um nome válido, sugere ele.
+        // Se é mudança de modo ou setup inicial e oldPlayerNames tem algo (de um modo anterior), não usa.
+        let currentNameForPrompt = (oldPlayerNames[i] && !isModeChangeOrInitialSetup && oldPlayerNames[i] !== defaultNameSuggestion && oldPlayerNames.length === numPlayersToDefine) ? oldPlayerNames[i] : defaultNameSuggestion;
+
+        let playerName = prompt(`Nome do Jogador ${i + 1}:`, currentNameForPrompt);
 
         if (playerName === null) {
-            playerNames = isInitialSetup ? ["Jogador 1", "Jogador 2", "Jogador 3", "Jogador 4"] : oldPlayerNames;
-            alert(isInitialSetup ? "Configuração cancelada. Usando nomes padrão." : "Edição cancelada.");
-            updateDealerDisplay();
-            if (isInitialSetup && !gameStartTime && playerNames.every(name => !name.startsWith("Jogador "))) startTimer();
-            return;
+            if (isModeChangeOrInitialSetup || oldPlayerNames.length !== numPlayersToDefine) { // Se cancelou durante setup de novo modo ou se o array antigo não bate com o modo atual
+                playerNames = Array(numPlayersToDefine).fill(null).map((_, j) => `Jogador ${j + 1}`);
+                alert("Configuração cancelada. Usando nomes padrão.");
+            } else { // Cancelou edição, mantém nomes antigos
+                playerNames = oldPlayerNames;
+                alert("Edição cancelada.");
+            }
+            updateScoreSectionTitles(); updateDealerDisplay(); return;
         }
         while (!playerName.trim()) {
             alert("Nome inválido.");
-            playerName = prompt(`Nome do Jogador ${i + 1}:`, defaultName);
+            playerName = prompt(`Nome do Jogador ${i + 1}:`, defaultNameSuggestion); // Volta para sugestão genérica
             if (playerName === null) {
-                playerNames = isInitialSetup ? ["Jogador 1", "Jogador 2", "Jogador 3", "Jogador 4"] : oldPlayerNames;
-                alert(isInitialSetup ? "Configuração cancelada. Usando nomes padrão." : "Edição cancelada.");
-                updateDealerDisplay();
-                if (isInitialSetup && !gameStartTime && playerNames.every(name => !name.startsWith("Jogador "))) startTimer();
-                return;
+                 if (isModeChangeOrInitialSetup || oldPlayerNames.length !== numPlayersToDefine) {
+                    playerNames = Array(numPlayersToDefine).fill(null).map((_, j) => `Jogador ${j + 1}`);
+                    alert("Configuração cancelada. Usando nomes padrão.");
+                } else {
+                    playerNames = oldPlayerNames;
+                    alert("Edição cancelada.");
+                }
+                updateScoreSectionTitles(); updateDealerDisplay(); return;
             }
         }
         newPlayerNames.push(playerName.trim());
     }
     playerNames = newPlayerNames;
-    if (isInitialSetup) currentDealerIndex = 0;
+    updateScoreSectionTitles();
 
+    if (isModeChangeOrInitialSetup) { // Sempre reseta dealer no setup de modo/inicial
+        currentDealerIndex = 0;
+    }
     saveData(STORAGE_KEYS.PLAYER_NAMES, playerNames);
-    saveData(STORAGE_KEYS.DEALER_INDEX, currentDealerIndex);
+    saveData(STORAGE_KEYS.DEALER_INDEX, currentDealerIndex); // Salva dealer para ambos os modos
+
     updateDealerDisplay();
-    speakText(isInitialSetup ? `Iniciando. Embaralhador: ${playerNames[currentDealerIndex]}` : "Nomes dos jogadores atualizados.");
-    if (isInitialSetup && !gameStartTime && playerNames.every(name => !name.startsWith("Jogador "))) startTimer();
+    speakText(isModeChangeOrInitialSetup ? `Modo de ${gameMode} jogadores configurado. ${playerNames[currentDealerIndex] || `Jogador ${currentDealerIndex+1}`} embaralha.` : "Nomes dos jogadores atualizados.");
+
+    if (isModeChangeOrInitialSetup && !gameStartTime && playerNames.length === numPlayersToDefine && playerNames.every(name => !name.startsWith("Jogador "))) {
+        startTimer();
+    }
 }
 
 function editTeamNames() {
+    if (gameMode !== 4) return;
     let newNameNos = prompt("Novo nome para a Equipe 1 (Nós):", teamNameNos);
     if (newNameNos && newNameNos.trim()) teamNameNos = newNameNos.trim();
     let newNameEles = prompt("Novo nome para a Equipe 2 (Eles):", teamNameEles);
     if (newNameEles && newNameEles.trim()) teamNameEles = newNameEles.trim();
     saveData(STORAGE_KEYS.TEAM_NAME_NOS, teamNameNos);
     saveData(STORAGE_KEYS.TEAM_NAME_ELES, teamNameEles);
-    updateTeamNameDisplay();
+    updateScoreSectionTitles();
     speakText("Nomes das equipes atualizados.");
 }
 
 // --- Lógica do Embaralhador ---
 function advanceDealer(speakAnnounce = false, callback = null) {
-    if (playerNames.length !== 4 || playerNames.some(name => name.startsWith("Jogador "))) {
-        if (speakAnnounce) alert("Defina os 4 nomes dos jogadores primeiro para usar o rodízio.");
-        if (callback) callback(); // Chama callback mesmo se não avançar
+    const numExpectedPlayers = gameMode;
+    if (playerNames.length !== numExpectedPlayers || playerNames.some(name => name.startsWith("Jogador "))) {
+        if (speakAnnounce) alert(`Defina os ${numExpectedPlayers} nomes dos jogadores primeiro.`);
+        if (callback) callback();
         return false;
     }
-    currentDealerIndex = (currentDealerIndex + 1) % 4;
+    currentDealerIndex = (currentDealerIndex + 1) % numExpectedPlayers; // Modulo 2 ou 4
     saveData(STORAGE_KEYS.DEALER_INDEX, currentDealerIndex);
     updateDealerDisplay();
     if (speakAnnounce && playerNames[currentDealerIndex]) {
         speakText(`Próximo a embaralhar: ${playerNames[currentDealerIndex]}`, true, callback);
     } else if (callback) {
-        callback(); // Chama o callback se não for anunciar
+        callback();
     }
     return true;
 }
 
-// --- Lógica Principal de Pontuação (MODIFICADA para usar callback na fala) ---
+// --- Lógica Principal de Pontuação ---
 function changeScore(team, amount, speakPointText = null) {
-    if (playerNames.length !== 4 || playerNames.some(name => name.startsWith("Jogador "))) {
-        alert("Por favor, defina os nomes dos 4 jogadores antes de iniciar a pontuação.");
+    const numExpectedPlayers = gameMode;
+    if (playerNames.length !== numExpectedPlayers || playerNames.some(name => name.startsWith("Jogador "))) {
+        alert(`Por favor, defina os nomes dos ${numExpectedPlayers} jogadores antes de pontuar.`);
         getPlayerNames(true);
         return false;
     }
@@ -358,19 +368,19 @@ function changeScore(team, amount, speakPointText = null) {
 
     let currentTargetScore = team === 'nos' ? scoreNos : scoreEles;
     if ((amount > 0 && currentTargetScore >= maxScore) || (amount < 0 && currentTargetScore <= 0 && amount !== -currentTargetScore)) {
-        if (amount < 0 && currentTargetScore > 0 && (currentTargetScore + amount < 0)) { /* não faz nada */ }
+        if (amount < 0 && currentTargetScore > 0 && (currentTargetScore + amount < 0)) {}
         else if (!(amount > 0 && currentTargetScore >= maxScore)) return false;
     }
 
     undoState = {
         sN: scoreNos, sE: scoreEles, psN: prevScoreNos, psE: prevScoreEles,
         dI: currentDealerIndex, isI: isInitialState,
-        gST: gameStartTime ? Date.now() - gameStartTime : null
+        gST: gameStartTime ? Date.now() - gameStartTime : null,
+        mde: gameMode
     };
     if (undoButton) undoButton.disabled = false;
 
-    prevScoreNos = scoreNos; prevScoreEles = scoreEles;
-    isInitialState = false;
+    prevScoreNos = scoreNos; prevScoreEles = scoreEles; isInitialState = false;
     let winner = null;
 
     if (team === 'nos') {
@@ -380,40 +390,34 @@ function changeScore(team, amount, speakPointText = null) {
         scoreEles = Math.min(maxScore, Math.max(0, scoreEles + amount));
         if (scoreEles >= maxScore) winner = 'eles';
     }
-
     updateCurrentGameDisplay();
 
-    // Define a função que será chamada após a fala do ponto (ou imediatamente se não houver fala de ponto)
     const afterPointSpeechAction = () => {
+        const finalAction = () => { if (winner) processMatchEnd(winner); else saveGameState(); };
+
         if (amount > 0) { // Avança dealer apenas se adicionou pontos
-            advanceDealer(false, () => { // Passa um callback para advanceDealer se precisar de ações após a fala do dealer
-                if (playerNames.length === 4 && playerNames[currentDealerIndex]) {
-                     // A fala do dealer já está encadeada se speakAnnounce=true em advanceDealer
-                     // Se advanceDealer não falou (speakAnnounce=false), e precisamos falar aqui:
-                     if (!speakPointText) { // Se não teve fala de ponto, o dealer é a primeira fala da sequência.
-                        speakText(`Embaralhador: ${playerNames[currentDealerIndex]}`, true, () => {
-                            if (winner) processMatchEnd(winner); else saveGameState();
-                        });
-                        return; // Evita chamar processMatchEnd/saveGameState duas vezes
-                     } else { // Se teve fala de ponto, a fala do dealer é a segunda.
-                        speakText(`Embaralhador: ${playerNames[currentDealerIndex]}`, false, () => { // false para não cancelar a si mesma se chamada rapidamente
-                           if (winner) processMatchEnd(winner); else saveGameState();
-                        });
-                        return;
-                     }
+            advanceDealer(false, () => { // Callback do advanceDealer
+                if (playerNames.length === gameMode && playerNames[currentDealerIndex]) {
+                    speakText(`Embaralhador: ${playerNames[currentDealerIndex]}`, false, finalAction);
+                } else {
+                    finalAction();
                 }
-                // Se não avançou dealer ou não tem nome, vai direto para o fim do jogo/salvar
-                if (winner) processMatchEnd(winner); else saveGameState();
             });
-        } else { // Se não adicionou pontos (removeu ou zerou)
-            if (winner) processMatchEnd(winner); else saveGameState();
+        } else {
+             finalAction();
         }
     };
 
     if (speakPointText && amount !== 0) {
-        speakText(speakPointText, true, afterPointSpeechAction); // Fala o ponto e depois executa afterPointSpeechAction
+        let fullSpeakText = speakPointText;
+        if (gameMode === 4) { // Adiciona "para Nós/Eles" apenas no modo 4
+            fullSpeakText += (team === 'nos' ? ` para ${teamNameNos}` : ` para ${teamNameEles}`);
+        } else { // Modo 2 jogadores, "para [Nome do Jogador]"
+            fullSpeakText += (team === 'nos' ? ` para ${playerNames[0]}` : ` para ${playerNames[1]}`);
+        }
+        speakText(fullSpeakText, true, afterPointSpeechAction);
     } else {
-        afterPointSpeechAction(); // Executa diretamente se não houver fala de ponto
+        afterPointSpeechAction();
     }
     return true;
 }
@@ -421,23 +425,26 @@ function changeScore(team, amount, speakPointText = null) {
 // --- Funcionalidade Desfazer ---
 function undoLastAction() {
     if (undoState) {
+        if (undoState.mde !== undefined && undoState.mde !== gameMode) {
+            alert("Não é possível desfazer após trocar o modo de jogo.");
+            speakText("Não é possível desfazer após trocar o modo de jogo.", true);
+            undoState = null; if (undoButton) undoButton.disabled = true; return;
+        }
         scoreNos = undoState.sN; scoreEles = undoState.sE;
         prevScoreNos = undoState.psN; prevScoreEles = undoState.psE;
-        currentDealerIndex = undoState.dI; isInitialState = undoState.isI;
+        isInitialState = undoState.isI;
+        currentDealerIndex = undoState.dI; // Restaura dealer para o modo que estava
 
         if (undoState.gST !== null && !gameStartTime) {
-            gameStartTime = Date.now() - undoState.gST;
-            startTimer();
+            gameStartTime = Date.now() - undoState.gST; startTimer();
         } else if (undoState.gST === null && gameStartTime) {
             resetCurrentTimerDisplay();
         }
-
-        updateCurrentGameDisplay(); updateDealerDisplay(); saveGameState();
+        updateCurrentGameDisplay(); updateDealerDisplay(); updateScoreSectionTitles(); saveGameState();
         undoState = null; if (undoButton) undoButton.disabled = true;
         speakText("Ação desfeita.", true);
     } else {
-        speakText("Nada para desfazer.", true);
-        if (undoButton) undoButton.disabled = true;
+        speakText("Nada para desfazer.", true); if (undoButton) undoButton.disabled = true;
     }
 }
 
@@ -445,63 +452,84 @@ function undoLastAction() {
 function processMatchEnd(winnerTeam) {
     const durationMs = stopTimer();
     if (durationMs !== null) {
-        matchDurationHistory.push({ duration: durationMs, winner: winnerTeam });
+        matchDurationHistory.push({ duration: durationMs, winner: winnerTeam, mode: gameMode, playerNames: [...playerNames] }); // Salva nomes da partida
         saveData(STORAGE_KEYS.DURATION_HISTORY, matchDurationHistory);
         updateDurationHistoryDisplay();
     }
     undoState = null; if (undoButton) undoButton.disabled = true;
     updateCurrentGameDisplay();
 
-    const winnerNameDisplay = winnerTeam === 'nos' ? teamNameNos : teamNameEles;
-    const speechCallback = () => { // Callback após a fala da vitória
-        alert(`${winnerNameDisplay} venceu a partida!\n\nDuração: ${formatTime(durationMs)}\nPlacar de Partidas: ${teamNameNos} ${matchesWonNos} x ${matchesWonEles} ${teamNameEles}`);
+    let winnerNameDisplay;
+    let winningTerm = "ganhou"; // Padrão para singular (modo 2P)
+    if (gameMode === 4) {
+        winnerNameDisplay = winnerTeam === 'nos' ? teamNameNos : teamNameEles;
+        winningTerm = winnerTeam === 'nos' ? "ganhou" : "ganharam"; // Ajusta para Nós/Eles
+    } else {
+        winnerNameDisplay = winnerTeam === 'nos' ? (playerNames[0] || "Jogador 1") : (playerNames[1] || "Jogador 2");
+    }
+
+    const speechCallback = () => {
+        let alertMsg = `${winnerNameDisplay} venceu a partida!\n\nDuração: ${formatTime(durationMs)}\nPlacar de Partidas:\n`;
+        if (gameMode === 4) {
+            alertMsg += `${teamNameNos}: ${matchesWonNos}\n${teamNameEles}: ${matchesWonEles}`;
+        } else {
+            alertMsg += `${playerNames[0] || "J1"}: ${matchesWonNos}\n${playerNames[1] || "J2"}: ${matchesWonEles}`;
+        }
+        alert(alertMsg);
         updateMatchWinsDisplay();
         prepareNextGame();
     };
-    
-    // Atraso para o usuário ver o placar de 12 antes da fala e do alerta
+
     setTimeout(() => {
         if (winnerTeam === 'nos') matchesWonNos++; else matchesWonEles++;
         saveData(STORAGE_KEYS.MATCHES_NOS, matchesWonNos);
         saveData(STORAGE_KEYS.MATCHES_ELES, matchesWonEles);
-        speakText(`${winnerNameDisplay} ${winnerTeam === 'nos' ? 'ganhou' : 'ganharam'} a partida!`, true, speechCallback);
+        speakText(`${winnerNameDisplay} ${winningTerm} a partida!`, true, speechCallback);
     }, 850);
 }
 
-function prepareNextGame() {
+function prepareNextGame(isModeChange = false) {
     scoreNos = 0; scoreEles = 0; prevScoreNos = 0; prevScoreEles = 0;
     isInitialState = true; undoState = null;
     if (undoButton) undoButton.disabled = true;
-    updateCurrentGameDisplay(); saveGameState();
-    resetCurrentTimerDisplay();
-    if (playerNames.length === 4 && !playerNames.some(name => name.startsWith("Jogador "))) {
+    updateCurrentGameDisplay(); resetCurrentTimerDisplay();
+
+    if (isModeChange) {
+        matchesWonNos = 0; matchesWonEles = 0; updateMatchWinsDisplay();
+        playerNames = []; // Limpa para redefinição
+        if (gameMode === 4) { teamNameNos = "Nós"; teamNameEles = "Eles"; }
+        getPlayerNames(true); // true para setup de modo
+    }
+    saveGameState();
+    if (!isModeChange && playerNames.length === gameMode && playerNames.every(name => !name.startsWith("Jogador "))) {
         setTimeout(startTimer, 150);
     }
 }
 
 // --- Funções de Reset ---
-function resetCurrentGame() {
-    if (confirm("Tem certeza que deseja reiniciar apenas o jogo atual (placar de 0 a 12)?\nIsso não afetará as partidas ganhas nem o embaralhador.")) {
+function resetCurrentGame(isModeChange = false) {
+    if (isModeChange || confirm("Tem certeza que deseja reiniciar apenas o jogo atual (placar de 0 a 12)?")) {
         undoState = null; if (undoButton) undoButton.disabled = true;
-        prepareNextGame();
-        speakText("Jogo atual reiniciado.");
+        prepareNextGame(isModeChange);
+        if (!isModeChange) speakText("Jogo atual reiniciado.");
     }
 }
 
 function resetAllScores() {
-    if (confirm("!!! ATENÇÃO !!!\n\nTem certeza que deseja ZERAR TODO o placar?\n\nIsso inclui:\n- Partidas ganhas\n- Jogo atual\n- Nomes dos jogadores e equipes\n- Histórico de tempos\n\nEsta ação não pode ser desfeita.")) {
+    if (confirm("!!! ATENÇÃO !!!\n\nZerar TODO o placar?")) {
         clearSavedGameData();
-        matchesWonNos = 0; matchesWonEles = 0; playerNames = []; currentDealerIndex = 0;
-        teamNameNos = "Nós"; teamNameEles = "Eles"; matchDurationHistory = [];
+        matchesWonNos = 0; matchesWonEles = 0;
+        if (gameMode === 4) { teamNameNos = "Nós"; teamNameEles = "Eles"; }
+        playerNames = []; currentDealerIndex = 0; matchDurationHistory = [];
         undoState = null; if (undoButton) undoButton.disabled = true;
-        updateMatchWinsDisplay(); updateDealerDisplay(); updateDurationHistoryDisplay();
-        updateTeamNameDisplay(); prepareNextGame();
-        getPlayerNames(true);
-        speakText("Placar geral, nomes e histórico zerados. Começando de novo!");
+        updateMatchWinsDisplay(); updateScoreSectionTitles(); updateDealerDisplay();
+        updateDurationHistoryDisplay();
+        prepareNextGame(true); // Força redefinição de nomes para o modo atual
+        speakText("Placar geral zerado. Configure os nomes.");
     }
 }
 
-// --- Tema (Claro/Escuro) ---
+// --- Tema e Som ---
 function setTheme(themeName) {
     if (!bodyElement || !themeToggleButton || !themeMeta) return;
     bodyElement.className = themeName + '-theme'; currentTheme = themeName;
@@ -510,70 +538,75 @@ function setTheme(themeName) {
     themeMeta.content = themeName === 'dark' ? '#1f1f1f' : '#f0f0f0';
 }
 function toggleTheme() { setTheme(currentTheme === 'dark' ? 'light' : 'dark'); }
+function setSound(soundOn) { isSoundOn = soundOn; saveData(STORAGE_KEYS.SOUND_ON, isSoundOn); updateSoundButtonIcon(); }
+function toggleSound() { setSound(!isSoundOn); if (isSoundOn) speakText("Som ativado.", true); else if (window.speechSynthesis) window.speechSynthesis.cancel(); }
 
-// --- Som (Liga/Desliga Narração) ---
-function setSound(soundOn) {
-    isSoundOn = soundOn; saveData(STORAGE_KEYS.SOUND_ON, isSoundOn);
-    updateSoundButtonIcon();
-}
-function toggleSound() {
-    setSound(!isSoundOn);
-    if (isSoundOn) speakText("Som ativado.", true);
-    else if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-}
-
-// --- Novas Funcionalidades ---
-function handleChangeGameMode() {
-    alert("Funcionalidade 'Trocar Modo de Jogo' ainda em desenvolvimento.");
-    speakText("Trocar modo de jogo em desenvolvimento.", true);
+// --- Funcionalidades Adicionais ---
+function toggleGameMode() {
+    if (confirm(`Deseja mudar para o modo de ${gameMode === 4 ? 2 : 4} jogadores?\nO jogo atual e o placar de partidas ganhas serão reiniciados.`)) {
+        gameMode = (gameMode === 4 ? 2 : 4);
+        saveGameMode();
+        updateUIBasedOnMode();
+        resetCurrentGame(true);
+        speakText(`Modo alterado para ${gameMode} jogadores. Configure os nomes.`, true);
+    }
 }
 
 function exportHistoryToWhatsApp() {
-    if (playerNames.length !== 4 || playerNames.some(name => name.startsWith("Jogador "))) {
-        alert("Defina os nomes dos jogadores e jogue algumas partidas antes de exportar.");
-        return;
+    const numExpectedPlayers = gameMode;
+    if (playerNames.length !== numExpectedPlayers || playerNames.some(name => name.startsWith("Jogador "))) {
+        alert(`Defina os nomes dos ${numExpectedPlayers} jogadores e jogue algumas partidas antes de exportar.`); return;
     }
-    let historyText = `*Histórico do Marcador Truco Acker Pro*\n\n`;
-    historyText += `*Equipes:*\n${teamNameNos} vs ${teamNameEles}\n\n`;
-    historyText += `*Jogadores:*\n1. ${playerNames[0]}\n2. ${playerNames[1]}\n3. ${playerNames[2]}\n4. ${playerNames[3]}\n\n`;
-    historyText += `*Placar Atual:*\n${teamNameNos}: ${scoreNos}\n${teamNameEles}: ${scoreEles}\n\n`;
-    historyText += `*Partidas Ganhas:*\n${teamNameNos}: ${matchesWonNos}\n${teamNameEles}: ${matchesWonEles}\n\n`;
+    let historyText = `*Histórico - Marcador Truco Acker Pro (${gameMode} Jogadores)*\n\n`;
+    if (gameMode === 4) {
+        historyText += `*Equipes:*\n${teamNameNos} vs ${teamNameEles}\n`;
+        historyText += `*Jogadores ${teamNameNos}:* ${playerNames[0]}, ${playerNames[2]}\n`;
+        historyText += `*Jogadores ${teamNameEles}:* ${playerNames[1]}, ${playerNames[3]}\n\n`;
+    } else {
+        historyText += `*Jogadores:*\n${playerNames[0]} vs ${playerNames[1]}\n\n`;
+    }
+    const scoreTeam1Name = gameMode === 4 ? teamNameNos : (playerNames[0] || "J1");
+    const scoreTeam2Name = gameMode === 4 ? teamNameEles : (playerNames[1] || "J2");
+    historyText += `*Placar Atual:*\n${scoreTeam1Name}: ${scoreNos}\n${scoreTeam2Name}: ${scoreEles}\n\n`;
+    historyText += `*Partidas Ganhas:*\n${scoreTeam1Name}: ${matchesWonNos}\n${scoreTeam2Name}: ${matchesWonEles}\n\n`;
+
     if (matchDurationHistory.length > 0) {
         historyText += "*Histórico de Duração das Partidas:*\n";
         matchDurationHistory.forEach((entry, index) => {
-            const winnerName = entry.winner === 'nos' ? teamNameNos : teamNameEles;
-            historyText += `Partida ${index + 1} (${winnerName}): ${formatTime(entry.duration)}\n`;
+            let winnerDisplayNameExport;
+            if (entry.mode === 4) {
+                winnerDisplayNameExport = entry.winner === 'nos' ? (entry.playerNames && entry.playerNames.length === 4 ? teamNameNos : "Equipe 1") : (entry.playerNames && entry.playerNames.length === 4 ? teamNameEles : "Equipe 2");
+            } else {
+                winnerDisplayNameExport = entry.winner === 'nos' ? (entry.playerNames && entry.playerNames[0] ? entry.playerNames[0] : "Jogador 1") : (entry.playerNames && entry.playerNames[1] ? entry.playerNames[1] : "Jogador 2");
+            }
+            historyText += `Partida ${index + 1} (${winnerDisplayNameExport} - ${entry.mode}P): ${formatTime(entry.duration)}\n`;
         });
-    } else {
-        historyText += "Nenhuma partida concluída para exibir no histórico de durações.\n";
-    }
+    } else { historyText += "Nenhuma partida concluída para exibir no histórico de durações.\n"; }
     historyText += `\nEmbaralhador Atual: ${dealerNameElement.textContent}`;
-    const encodedText = encodeURIComponent(historyText);
-    window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
-    speakText("Histórico pronto para compartilhar no WhatsApp.", true);
+
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(historyText)}`, '_blank');
+    speakText("Histórico pronto para compartilhar.", true);
 }
 
-// --- Adicionar Event Listeners ---
+// --- Event Listeners ---
 function addEventListeners() {
-    document.querySelector('.teams').addEventListener('click', event => {
-        const button = event.target.closest('button');
-        if (button && button.dataset.team && button.dataset.amount) {
-            changeScore(button.dataset.team, parseInt(button.dataset.amount, 10), button.dataset.speak);
-        }
+    document.querySelector('.teams').addEventListener('click', e => {
+        const btn = e.target.closest('button');
+        if (btn?.dataset.team && btn.dataset.amount) changeScore(btn.dataset.team, parseInt(btn.dataset.amount), btn.dataset.speak);
     });
     themeToggleButton?.addEventListener('click', toggleTheme);
     soundToggleButton?.addEventListener('click', toggleSound);
-    document.getElementById('next-dealer-btn')?.addEventListener('click', () => advanceDealer(true));
+    nextDealerButtonElement?.addEventListener('click', () => advanceDealer(true));
     undoButton?.addEventListener('click', undoLastAction);
-    document.getElementById('edit-teams-btn')?.addEventListener('click', editTeamNames);
+    editTeamsButton?.addEventListener('click', editTeamNames);
     editPlayersButton?.addEventListener('click', () => getPlayerNames(false));
-    document.getElementById('reset-game-btn')?.addEventListener('click', resetCurrentGame);
+    document.getElementById('reset-game-btn')?.addEventListener('click', () => resetCurrentGame(false));
     document.getElementById('reset-all-btn')?.addEventListener('click', resetAllScores);
-    changeGameModeButton?.addEventListener('click', handleChangeGameMode);
+    changeGameModeButton?.addEventListener('click', toggleGameMode);
     exportHistoryButton?.addEventListener('click', exportHistoryToWhatsApp);
 }
 
-// --- Inicialização do Aplicativo ---
+// --- Inicialização ---
 function initializeApp() {
     mainTitleElement = document.querySelector('h1');
     scoreNosElement = document.getElementById('score-nos');
@@ -593,19 +626,24 @@ function initializeApp() {
     bodyElement = document.body;
     themeMeta = document.getElementById('theme-color-meta');
     editPlayersButton = document.getElementById('edit-players-btn');
+    editTeamsButton = document.getElementById('edit-teams-btn');
     changeGameModeButton = document.getElementById('change-game-mode-btn');
     exportHistoryButton = document.getElementById('export-history-btn');
     footerCreditElement = document.querySelector('.footer-credit p');
+    dealerSectionElement = document.querySelector('.dealer-section');
+    nextDealerButtonElement = document.getElementById('next-dealer-btn');
 
     loadGameSettings(); setTheme(currentTheme); setSound(isSoundOn);
     loadGameData();
+    updateUIBasedOnMode();
     updateMainTitle(); updateFooterCredit(); updateCurrentGameDisplay();
-    updateMatchWinsDisplay(); updateTeamNameDisplay(); updateDealerDisplay();
+    updateMatchWinsDisplay();
     updateDurationHistoryDisplay();
     if (undoButton) undoButton.disabled = (undoState === null);
     addEventListeners();
 
-    if (playerNames.length !== 4 || playerNames.some(name => name.startsWith("Jogador "))) {
+    const numExpectedPlayers = gameMode;
+    if (playerNames.length !== numExpectedPlayers || playerNames.some(name => name.startsWith("Jogador "))) {
         setTimeout(() => getPlayerNames(true), 300);
     } else {
         resetCurrentTimerDisplay();
