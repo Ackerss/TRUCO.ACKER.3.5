@@ -9,13 +9,13 @@
     --text-color: #e0e0e0;
     --text-color-light: #c0c0c0;
     --text-color-lighter: #b0b0b0;
-    --text-color-muted: #a0a0a0; /* Ajustado para melhor contraste no rodapé escuro */
+    --text-color-muted: #a0a0a0;
     --title-color: #ffffff;
     --border-color: #444;
     --border-color-light: #555;
     --border-color-dark: #333;
-    --accent-nos: #69b1ff; /* Azul para "Nós" */
-    --accent-eles: #ff8787; /* Vermelho para "Eles" */
+    --accent-nos: #69b1ff;
+    --accent-eles: #ff8787;
     --button-bg: #4f4f4f;
     --button-hover-bg: #5f5f5f;
     --button-active-bg: #444;
@@ -39,33 +39,33 @@
     --button-truco-text: #91d5ff;
     --button-truco-border: #4a8ab3;
     --button-truco-border-bottom: #2a4a66;
-    --button-action-text: #1f1f1f; /* Texto escuro para botões de ação claros */
-    --button-edit-bg: #96f2d7; /* Verde claro */
+    --button-action-text: #1f1f1f;
+    --button-edit-bg: #96f2d7;
     --button-edit-hover: #a3f5e0;
     --button-edit-active: #75e0c1;
     --button-edit-border: #54c7a8;
     --button-edit-border-bottom: #36a184;
-    --button-reset-game-bg: #ffe066; /* Amarelo */
+    --button-reset-game-bg: #ffe066;
     --button-reset-game-hover: #ffea80;
     --button-reset-game-active: #e6c84d;
     --button-reset-game-border: #e6c84d;
     --button-reset-game-border-bottom: #ccae33;
-    --button-reset-all-bg: #ff8787; /* Vermelho claro (perigo) */
+    --button-reset-all-bg: #ff8787;
     --button-reset-all-hover: #ff9b9b;
     --button-reset-all-active: #e06767;
     --button-reset-all-border: #e06767;
     --button-reset-all-border-bottom: #cc4d4d;
-    --button-undo-bg: #74c0fc; /* Azul claro */
+    --button-undo-bg: #74c0fc;
     --button-undo-hover: #8bc9fd;
     --button-undo-active: #4dabf7;
     --button-undo-border: #4a8ab3;
     --button-undo-border-bottom: #2f516d;
-    --button-export-bg: #82c91e; /* Verde para Exportar */
+    --button-export-bg: #82c91e;
     --button-export-hover: #96d43b;
     --button-export-active: #74b81a;
     --button-export-border: #74b81a;
     --button-export-border-bottom: #629d16;
-    --button-change-mode-bg: #fcc419; /* Laranja para Trocar Modo */
+    --button-change-mode-bg: #fcc419;
     --button-change-mode-hover: #fdd835;
     --button-change-mode-active: #fbc02d;
     --button-change-mode-border: #fbc02d;
@@ -78,7 +78,6 @@
     --shadow-color-darkest: rgba(0,0,0,0.2);
 }
 
-/* Tema Claro */
 body.light-theme {
     --bg-color: #f0f0f0;
     --scoreboard-bg: #ffffff;
@@ -88,7 +87,7 @@ body.light-theme {
     --text-color: #212529;
     --text-color-light: #495057;
     --text-color-lighter: #6c757d;
-    --text-color-muted: #555; /* Ajustado para melhor contraste no rodapé claro */
+    --text-color-muted: #555;
     --title-color: #000000;
     --border-color: #dee2e6;
     --border-color-light: #ced4da;
@@ -118,7 +117,7 @@ body.light-theme {
     --button-truco-text: #004085;
     --button-truco-border: #b8daff;
     --button-truco-border-bottom: #93b9e6;
-    --button-action-text: #212529; /* Texto escuro para botões de ação */
+    --button-action-text: #212529;
     --button-edit-bg: #a3f5e0;
     --button-edit-hover: #b7f7e6;
     --button-edit-active: #89e8d0;
@@ -152,7 +151,7 @@ body.light-theme {
     --button-disabled-bg: #e9ecef;
     --button-disabled-text: #adb5bd;
     --button-disabled-border: #dee2e6;
-    --shadow-color: rgba(0,0,0,0.07); /* Sombra mais suave no tema claro */
+    --shadow-color: rgba(0,0,0,0.07);
     --shadow-color-darker: rgba(0,0,0,0.1);
     --shadow-color-darkest: rgba(0,0,0,0.12);
 }
@@ -160,422 +159,208 @@ body.light-theme {
 /* --- Estilos Gerais --- */
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: 100vh;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    margin: 0;
-    padding: 15px; /* Espaçamento nas laterais do corpo */
-    box-sizing: border-box;
+    display: flex; justify-content: center; align-items: flex-start;
+    min-height: 100vh; background-color: var(--bg-color); color: var(--text-color);
+    margin: 0; padding: 15px; box-sizing: border-box;
     transition: background-color 0.3s ease, color 0.3s ease;
-    -webkit-tap-highlight-color: transparent; /* Remove highlight de toque */
+    -webkit-tap-highlight-color: transparent;
 }
 .scoreboard {
-    background-color: var(--scoreboard-bg);
-    padding: 15px 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px var(--shadow-color-darker);
-    text-align: center;
-    width: 100%;
-    max-width: 500px; /* Largura máxima do placar */
-    box-sizing: border-box;
-    border: 1px solid var(--border-color);
-    position: relative;
+    background-color: var(--scoreboard-bg); padding: 15px 20px; border-radius: 12px;
+    box-shadow: 0 4px 15px var(--shadow-color-darker); text-align: center;
+    width: 100%; max-width: 500px; box-sizing: border-box;
+    border: 1px solid var(--border-color); position: relative;
     transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 h1 {
-    color: var(--title-color);
-    margin-top: 0;
-    margin-bottom: 20px; /* Mais espaço abaixo do título principal */
-    font-size: 1.8em; /* Título um pouco maior */
-    font-weight: 600; /* Fonte um pouco menos bold */
+    color: var(--title-color); margin-top: 0; margin-bottom: 20px;
+    font-size: 1.8em; font-weight: 600;
     text-shadow: 0 1px 2px var(--shadow-color-darkest);
 }
-h2, h3, h4 {
-    color: var(--text-color-light);
-    font-weight: 500; /* Peso médio para subtítulos */
-}
-hr {
-    border: none;
-    border-top: 1px solid var(--border-color);
-    margin: 25px 0; /* Mais espaço para a linha divisória */
-}
+h2, h3, h4 { color: var(--text-color-light); font-weight: 500; }
+hr { border: none; border-top: 1px solid var(--border-color); margin: 25px 0; }
 
-/* --- Botões de Configuração no Topo (Tema e Som) --- */
+.hidden { display: none !important; } /* Classe para ocultar elementos */
+
+/* --- Botões de Configuração no Topo --- */
 .top-config-buttons {
-    position: absolute;
-    top: 12px; /* Ajuste fino da posição */
-    right: 12px;
-    display: flex;
-    flex-direction: column; /* Empilha verticalmente */
-    align-items: flex-end;
-    gap: 8px; /* Espaço entre os botões */
+    position: absolute; top: 12px; right: 12px; display: flex;
+    flex-direction: column; align-items: flex-end; gap: 8px;
 }
 #theme-toggle-btn, #sound-toggle-btn {
-    background: var(--section-bg);
-    color: var(--text-color-lighter);
-    border: 1px solid var(--border-color-light);
-    border-radius: 50%; /* Botões redondos */
-    width: 36px; /* Tamanho um pouco maior */
-    height: 36px;
-    font-size: 1.2em; /* Ícone maior */
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 0;
+    background: var(--section-bg); color: var(--text-color-lighter);
+    border: 1px solid var(--border-color-light); border-radius: 50%;
+    width: 36px; height: 36px; font-size: 1.2em; cursor: pointer;
+    display: flex; justify-content: center; align-items: center; padding: 0;
     transition: background-color 0.2s, color 0.2s, transform 0.15s;
     box-shadow: 0 1px 3px var(--shadow-color);
 }
-#theme-toggle-btn:hover, #sound-toggle-btn:hover {
-    background-color: var(--section-bg-alt);
-    color: var(--text-color);
-}
-#theme-toggle-btn:active, #sound-toggle-btn:active {
-    transform: scale(0.92); /* Efeito de clique mais pronunciado */
-}
+#theme-toggle-btn:hover, #sound-toggle-btn:hover { background-color: var(--section-bg-alt); color: var(--text-color); }
+#theme-toggle-btn:active, #sound-toggle-btn:active { transform: scale(0.92); }
 
 /* --- Seção Cronômetro --- */
 .timer-section {
-    padding: 8px 12px; /* Padding interno */
-    margin-bottom: 15px;
-    background-color: var(--section-bg);
-    border: 1px solid var(--border-color-light);
-    border-radius: 8px; /* Cantos mais arredondados */
-    text-align:center;
+    padding: 8px 12px; margin-bottom: 15px; background-color: var(--section-bg);
+    border: 1px solid var(--border-color-light); border-radius: 8px; text-align:center;
 }
-.timer-section h3 {
-    margin: 2px 0 4px 0; /* Espaçamento do título do timer */
-    font-size: 0.85em;
-    color: var(--text-color-lighter);
-    font-weight: 400;
-}
+.timer-section h3 { margin: 2px 0 4px 0; font-size: 0.85em; color: var(--text-color-lighter); font-weight: 400; }
 #current-timer-display {
-    font-size: 1.6em; /* Tempo maior */
-    font-weight: 700;
-    color: var(--text-color);
-    font-family: 'SF Mono', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace; /* Fontes monoespaçadas preferidas */
-    display:block;
-    margin: 0;
-    padding: 2px 0;
+    font-size: 1.6em; font-weight: 700; color: var(--text-color);
+    font-family: 'SF Mono', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+    display:block; margin: 0; padding: 2px 0;
 }
 
 /* --- Seção Partidas Ganhas --- */
 .match-wins-section {
-    background-color: var(--section-bg-alt);
-    padding:10px 15px;
-    border-radius:8px;
-    margin-bottom:15px;
-    border:1px solid var(--border-color-light);
+    background-color: var(--section-bg-alt); padding:10px 15px; border-radius:8px;
+    margin-bottom:15px; border:1px solid var(--border-color-light);
 }
-.match-wins-section h2 {
-    margin:0 0 8px 0;
-    font-size:1.1em;
-    color: var(--text-color-light);
-}
-.match-wins-display {
-    font-size:1.5em; /* Placar de partidas maior */
-    font-weight:700;
-    color: var(--text-color);
-}
+.match-wins-section h2 { margin:0 0 8px 0; font-size:1.1em; color: var(--text-color-light); }
+.match-wins-display { font-size:1.5em; font-weight:700; color: var(--text-color); }
 .match-wins-display .nos { color: var(--accent-nos); }
 .match-wins-display .eles { color: var(--accent-eles); }
 .match-wins-display span { display:inline-block; min-width:30px; }
 
 /* --- Seção Embaralhador --- */
 .dealer-section {
-    padding: 10px 15px; /* Mais padding */
-    margin-bottom:20px; /* Mais espaço abaixo */
-    background-color: var(--section-bg);
-    border:1px solid var(--border-color-light);
-    border-radius:8px;
+    padding: 10px 15px; margin-bottom:20px; background-color: var(--section-bg);
+    border:1px solid var(--border-color-light); border-radius:8px;
 }
-.dealer-section h3 {
-    margin: 2px 0 5px 0; /* Ajuste de margem para o título */
-    font-size:1em;
-    color: var(--text-color-lighter);
-    font-weight: 400;
-}
+.dealer-section h3 { margin: 2px 0 5px 0; font-size:1em; color: var(--text-color-lighter); font-weight: 400; }
 #current-dealer-name {
-    font-size:1.35em; /* Nome do dealer um pouco maior */
-    font-weight:600;
-    color: var(--text-color);
-    min-height: 1.4em; /* Garante altura mínima */
-    line-height: 1.4em;
-    margin: 0 0 8px 0; /* Espaço abaixo do nome */
-    word-break: break-word; /* Quebra nomes longos */
+    font-size:1.35em; font-weight:600; color: var(--text-color);
+    min-height: 1.4em; line-height: 1.4em; margin: 0 0 8px 0; word-break: break-word;
 }
 #next-dealer-btn {
-    margin-top: 5px;
-    padding: 8px 15px; /* Botão um pouco maior */
-    font-size: .9em;
-    background-color: var(--button-bg); /* Cor de botão padrão */
-    color: var(--button-text);
-    border:1px solid var(--button-border);
-    border-bottom-width: 3px; /* Efeito 3D sutil */
-    border-radius:6px;
-    cursor:pointer;
+    margin-top: 5px; padding: 8px 15px; font-size: .9em;
+    background-color: var(--button-bg); color: var(--button-text);
+    border:1px solid var(--button-border); border-bottom-width: 3px;
+    border-radius:6px; cursor:pointer;
     transition: background-color .2s, transform .1s ease-out, box-shadow .1s ease-out;
     box-shadow:0 2px 3px var(--shadow-color-darker);
 }
 #next-dealer-btn:hover { background-color: var(--button-hover-bg); }
 #next-dealer-btn:active {
-    background-color: var(--button-active-bg);
-    transform:translateY(1px); /* Efeito de clique */
-    border-bottom-width:2px;
-    box-shadow:0 1px 2px var(--shadow-color-darkest);
+    background-color: var(--button-active-bg); transform:translateY(1px);
+    border-bottom-width:2px; box-shadow:0 1px 2px var(--shadow-color-darkest);
 }
 
-/* --- Seção Times (Nós e Eles) --- */
+/* --- Seção Times --- */
 .teams {
-    display:flex;
-    justify-content:space-around;
-    gap:15px; /* Espaço entre as colunas dos times */
-    margin-bottom:10px; /* Espaço abaixo da seção dos times */
-    flex-wrap:wrap; /* Permite quebra em telas menores */
+    display:flex; justify-content:space-around; gap:15px;
+    margin-bottom:10px; flex-wrap:wrap;
 }
 .team {
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    padding:15px;
-    border:1px solid var(--border-color-light);
-    background-color: var(--section-bg-hist);
-    border-radius:10px; /* Cantos mais arredondados */
-    min-width:130px; /* Largura mínima para cada time */
-    flex-basis:calc(50% - 10px); /* Tenta ocupar metade, considerando o gap */
-    flex-grow:1;
-    box-sizing:border-box;
-    margin-bottom:10px; /* Espaço caso quebre a linha */
+    display:flex; flex-direction:column; align-items:center; padding:15px;
+    border:1px solid var(--border-color-light); background-color: var(--section-bg-hist);
+    border-radius:10px; min-width:130px; flex-basis:calc(50% - 10px);
+    flex-grow:1; box-sizing:border-box; margin-bottom:10px;
 }
-.team h2 { /* Nomes das equipes */
-    margin-top:0;
-    margin-bottom:12px;
-    color: var(--text-color-light);
-    font-size:1.25em;
-    font-weight:600;
-}
-.score { /* Pontuação de cada equipe */
-    font-size:3.8em; /* Pontuação bem grande */
-    font-weight:700;
-    margin-bottom:18px;
-    min-height:1.2em; /* Altura mínima para alinhar mesmo com 0 */
-    line-height:1;
-    text-shadow:0 1px 3px var(--shadow-color-darker);
+.team h2 { margin-top:0; margin-bottom:12px; color: var(--text-color-light); font-size:1.25em; font-weight:600; }
+.score {
+    font-size:3.8em; font-weight:700; margin-bottom:18px;
+    min-height:1.2em; line-height:1; text-shadow:0 1px 3px var(--shadow-color-darker);
 }
 .team .score.nos { color: var(--accent-nos); }
 .team .score.eles { color: var(--accent-eles); }
 
-/* --- Controles de Pontuação (+/- e Truco) --- */
+/* --- Controles de Pontuação --- */
 .controls {
-    display:grid; /* Usar grid para melhor alinhamento */
-    grid-template-columns: repeat(auto-fit, minmax(45px, 1fr)); /* Colunas responsivas */
-    gap:8px; /* Espaço entre botões */
-    width: 100%; /* Ocupa toda a largura da .team section */
-    margin-top: 5px;
+    display:grid; grid-template-columns: repeat(auto-fit, minmax(45px, 1fr));
+    gap:8px; width: 100%; margin-top: 5px;
 }
 .controls button {
-    border-radius: 6px; /* Cantos arredondados */
-    padding: 10px 8px; /* Padding interno dos botões */
-    font-size: 1.1em;
-    font-weight: 500;
-    cursor: pointer;
-    min-width: 40px;
+    border-radius: 6px; padding: 10px 8px; font-size: 1.1em; font-weight: 500;
+    cursor: pointer; min-width: 40px;
     transition: background-color .15s, transform .1s, box-shadow .15s;
-    user-select: none;
-    -webkit-user-select:none;
-    -ms-user-select:none;
-    border-style: solid;
-    border-width: 1px;
-    border-bottom-width: 3px; /* Efeito 3D */
+    user-select: none; -webkit-user-select:none; -ms-user-select:none;
+    border-style: solid; border-width: 1px; border-bottom-width: 3px;
     box-shadow: 0 2px 3px var(--shadow-color);
 }
-.controls button:active {
-    transform: translateY(1px) scale(.97); /* Efeito de clique */
-    border-bottom-width: 2px;
-    box-shadow: 0 1px 2px var(--shadow-color-darker);
-}
-/* Cores específicas dos botões de controle */
+.controls button:active { transform: translateY(1px) scale(.97); border-bottom-width: 2px; box-shadow: 0 1px 2px var(--shadow-color-darker); }
 .controls .add { color: var(--button-add-text); border-color: var(--button-add-border); background-color: var(--button-add-bg); border-bottom-color: var(--button-add-border-bottom); }
 .controls .add:hover { background-color: var(--button-add-hover); }
 .controls .add:active { background-color: var(--button-add-active); }
-
 .controls .remove { color: var(--button-remove-text); border-color: var(--button-remove-border); background-color: var(--button-remove-bg); border-bottom-color: var(--button-remove-border-bottom); }
 .controls .remove:hover { background-color: var(--button-remove-hover); }
 .controls .remove:active { background-color: var(--button-remove-active); }
-
 .controls .truco-btn { color: var(--button-truco-text); border-color: var(--button-truco-border); background-color: var(--button-truco-bg); border-bottom-color: var(--button-truco-border-bottom); }
 .controls .truco-btn:hover { background-color: var(--button-truco-hover); }
 .controls .truco-btn:active { background-color: var(--button-truco-active); }
 
 /* --- Botão Desfazer --- */
-.undo-section {
-    text-align: center;
-    margin-top: 20px; /* Mais espaço acima */
-    margin-bottom: 25px; /* Mais espaço abaixo */
-}
+.undo-section { text-align: center; margin-top: 20px; margin-bottom: 25px; }
 #undo-button {
-    padding: 10px 20px; /* Botão maior */
-    font-size: 0.95em;
-    font-weight: bold;
-    border-radius: 6px;
-    cursor: pointer;
-    border: 1px solid var(--button-undo-border);
+    padding: 10px 20px; font-size: 0.95em; font-weight: bold; border-radius: 6px;
+    cursor: pointer; border: 1px solid var(--button-undo-border);
     border-bottom: 3px solid var(--button-undo-border-bottom);
     transition: background-color .2s, transform .1s ease-out, box-shadow .1s ease-out;
-    background-color: var(--button-undo-bg);
-    color: var(--button-action-text); /* Texto escuro para contraste */
+    background-color: var(--button-undo-bg); color: var(--button-action-text);
     box-shadow: 0 2px 3px var(--shadow-color-darker);
 }
 #undo-button:hover { background-color: var(--button-undo-hover); }
-#undo-button:active {
-    background-color: var(--button-undo-active);
-    transform: translateY(1px);
-    border-bottom-width: 2px;
-    box-shadow: 0 1px 2px var(--shadow-color-darkest);
-}
+#undo-button:active { background-color: var(--button-undo-active); transform: translateY(1px); border-bottom-width: 2px; box-shadow: 0 1px 2px var(--shadow-color-darkest); }
 #undo-button:disabled {
-    background-color: var(--button-disabled-bg);
-    color: var(--button-disabled-text);
-    border: 1px solid var(--button-disabled-border);
-    border-bottom: 1px solid var(--button-disabled-border); /* Sem efeito 3D quando desabilitado */
-    cursor: not-allowed;
-    opacity: 0.7;
-    box-shadow: none;
-    transform: none;
+    background-color: var(--button-disabled-bg); color: var(--button-disabled-text);
+    border: 1px solid var(--button-disabled-border); border-bottom: 1px solid var(--button-disabled-border);
+    cursor: not-allowed; opacity: 0.7; box-shadow: none; transform: none;
 }
 
-/* --- Histórico de Pontos Anteriores (Jogo Atual) --- */
-.history-section {
-    margin-top:0; /* Já tem HR acima */
-    padding-top:15px;
-    border-top:1px solid var(--border-color); /* Linha divisória */
-    text-align:center;
-}
-.history-section h3 {
-    margin-top:0;
-    margin-bottom:10px;
-    font-size:1em;
-    color: var(--text-color-lighter);
-    font-weight: 400;
-}
-.history-score {
-    font-size:1.2em;
-    color: var(--text-color-light);
-}
+/* --- Histórico de Pontos Anteriores --- */
+.history-section { margin-top:0; padding-top:15px; border-top:1px solid var(--border-color); text-align:center; }
+.history-section h3 { margin-top:0; margin-bottom:10px; font-size:1em; color: var(--text-color-lighter); font-weight: 400; }
+.history-score { font-size:1.2em; color: var(--text-color-light); }
 .history-score span { font-weight:700; display:inline-block; min-width:25px; }
 .history-score .nos { color: var(--accent-nos); }
 .history-score .eles { color: var(--accent-eles); }
 
-/* --- Botões de Ação (Reset / Editar Nomes / etc.) --- */
+/* --- Botões de Ação --- */
 .action-buttons {
-    margin-top:30px; /* Mais espaço acima */
-    padding-top:20px; /* Mais padding interno */
-    border-top:1px solid var(--border-color);
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:12px; /* Espaço entre botões de ação */
+    margin-top:30px; padding-top:20px; border-top:1px solid var(--border-color);
+    display:flex; flex-direction:column; align-items:center; gap:12px;
 }
 .action-buttons button {
-    padding: 12px 22px; /* Botões de ação maiores */
-    font-size: 0.95em;
-    font-weight: 500; /* Peso médio */
-    border-radius: 8px; /* Cantos mais arredondados */
-    cursor: pointer;
-    border-style: solid;
-    border-width: 1px;
-    border-bottom-width: 3px;
+    padding: 12px 22px; font-size: 0.95em; font-weight: 500; border-radius: 8px;
+    cursor: pointer; border-style: solid; border-width: 1px; border-bottom-width: 3px;
     transition: background-color .2s, transform .1s ease-out, box-shadow .1s ease-out;
-    width: 90%; /* Largura maior */
-    max-width: 320px; /* Largura máxima */
-    color: var(--button-action-text); /* Texto escuro para contraste */
+    width: 90%; max-width: 320px; color: var(--button-action-text);
     box-shadow: 0 2px 4px var(--shadow-color-darker);
 }
-.action-buttons button:active {
-    transform: translateY(1px);
-    border-bottom-width: 2px;
-    box-shadow: 0 1px 2px var(--shadow-color-darkest);
-}
-/* Cores específicas dos botões de ação */
+.action-buttons button:active { transform: translateY(1px); border-bottom-width: 2px; box-shadow: 0 1px 2px var(--shadow-color-darkest); }
 #edit-teams-btn, #edit-players-btn { background-color: var(--button-edit-bg); border-color: var(--button-edit-border); border-bottom-color: var(--button-edit-border-bottom); }
 #edit-teams-btn:hover, #edit-players-btn:hover { background-color: var(--button-edit-hover); }
 #edit-teams-btn:active, #edit-players-btn:active { background-color: var(--button-edit-active); }
-
 .reset-game-button { background-color: var(--button-reset-game-bg); border-color: var(--button-reset-game-border); border-bottom-color: var(--button-reset-game-border-bottom); }
 .reset-game-button:hover { background-color: var(--button-reset-game-hover); }
 .reset-game-button:active { background-color: var(--button-reset-game-active); }
-
 .reset-all-button { background-color: var(--button-reset-all-bg); border-color: var(--button-reset-all-border); border-bottom-color: var(--button-reset-all-border-bottom); }
 .reset-all-button:hover { background-color: var(--button-reset-all-hover); }
 .reset-all-button:active { background-color: var(--button-reset-all-active); }
-
 #change-game-mode-btn { background-color: var(--button-change-mode-bg); border-color: var(--button-change-mode-border); border-bottom-color: var(--button-change-mode-border-bottom); }
 #change-game-mode-btn:hover { background-color: var(--button-change-mode-hover); }
 #change-game-mode-btn:active { background-color: var(--button-change-mode-active); }
-
 #export-history-btn { background-color: var(--button-export-bg); border-color: var(--button-export-border); border-bottom-color: var(--button-export-border-bottom); }
 #export-history-btn:hover { background-color: var(--button-export-hover); }
 #export-history-btn:active { background-color: var(--button-export-active); }
 
-
 /* --- Histórico de Duração das Partidas --- */
- .duration-history-section {
-     margin-top: 25px; /* Mais espaço acima */
-     margin-bottom: 25px;
-     padding: 15px;
-     background-color: var(--section-bg-hist);
-     border: 1px solid var(--border-color);
-     border-radius: 8px;
-     text-align: left;
- }
- .duration-history-section h4 {
-     margin-top: 0;
-     margin-bottom: 10px;
-     font-size: 0.95em;
-     color: var(--text-color-light);
-     text-align: center;
-     font-weight: 500;
- }
- #duration-history-list {
-     list-style: none;
-     padding: 0;
-     margin: 0;
-     max-height: 120px; /* Altura máxima com scroll */
-     overflow-y: auto;
-     font-size: 0.9em;
-     color: var(--text-color-light);
-     font-family: 'SF Mono', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
- }
- #duration-history-list li {
-     padding: 4px 8px; /* Mais padding nos itens */
-     border-bottom: 1px dashed var(--border-color-light);
-     display: flex;
-     justify-content: space-between;
-     align-items: center;
- }
- #duration-history-list li:last-child { border-bottom: none; }
- /* Ícone de Vencedor no Histórico (Letra 'V' com Cor) */
- .winner-icon {
-     font-size: 1em;
-     font-weight: bold;
-     margin-left: 8px;
-     font-style: normal;
-     display: inline-block;
- }
- .winner-icon.nos { color: var(--accent-nos); }
- .winner-icon.eles { color: var(--accent-eles); }
-
-
-/* --- Estilo do Footer de Crédito --- */
-.footer-credit {
-    margin-top: 30px; /* Mais espaço acima do rodapé */
-    padding-top: 15px;
-    border-top: 1px solid var(--border-color);
-    font-size: 0.8em;
-    color: var(--text-color-muted);
-    text-align: center;
+.duration-history-section {
+    margin-top: 25px; margin-bottom: 25px; padding: 15px;
+    background-color: var(--section-bg-hist); border: 1px solid var(--border-color);
+    border-radius: 8px; text-align: left;
 }
+.duration-history-section h4 { margin-top: 0; margin-bottom: 10px; font-size: 0.95em; color: var(--text-color-light); text-align: center; font-weight: 500; }
+#duration-history-list {
+    list-style: none; padding: 0; margin: 0; max-height: 120px; overflow-y: auto;
+    font-size: 0.9em; color: var(--text-color-light);
+    font-family: 'SF Mono', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+}
+#duration-history-list li { padding: 4px 8px; border-bottom: 1px dashed var(--border-color-light); display: flex; justify-content: space-between; align-items: center; }
+#duration-history-list li:last-child { border-bottom: none; }
+.winner-icon { font-size: 1em; font-weight: bold; margin-left: 8px; font-style: normal; display: inline-block; }
+.winner-icon.nos { color: var(--accent-nos); }
+.winner-icon.eles { color: var(--accent-eles); }
+
+/* --- Rodapé --- */
+.footer-credit { margin-top: 30px; padding-top: 15px; border-top: 1px solid var(--border-color); font-size: 0.8em; color: var(--text-color-muted); text-align: center; }
 .footer-credit p { margin: 0; padding: 0; }
