@@ -3,17 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#1f1f1f" id="theme-color-meta"> <title>Marcador Truco Acker Pro</title>
-
+    <meta name="theme-color" content="#1f1f1f" id="theme-color-meta">
+    <title>Marcador Truco Acker Pro</title>
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icon-192.png"> <link rel="stylesheet" href="styles.css">
-
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="stylesheet" href="styles.css">
     <script>
-        // Registrar Service Worker para PWA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js').then(registration => {
-                    console.log('SW registrado com escopo:', registration.scope);
+                    console.log('SW registrado:', registration.scope);
                 }, function(err) {
                     console.log('Falha no registro do SW:', err);
                 });
@@ -21,9 +20,13 @@
         }
     </script>
 </head>
-<body class="dark-theme"> <div class="scoreboard">
+<body class="dark-theme">
+
+<div class="scoreboard">
     <div class="top-config-buttons">
-        <button id="theme-toggle-btn" title="Alternar Tema">☀️</button> <button id="sound-toggle-btn" title="Alternar Som">🔊</button> </div>
+        <button id="theme-toggle-btn" title="Alternar Tema">☀️</button>
+        <button id="sound-toggle-btn" title="Alternar Som">🔊</button>
+    </div>
 
     <h1>Marcador Truco Acker Pro</h1>
 
@@ -51,24 +54,24 @@
             <h2 id="team-name-nos">Nós</h2>
             <div id="score-nos" class="score nos">0</div>
             <div class="controls">
-                <button class="remove" data-team="nos" data-amount="-1" aria-label="Remover 1 ponto Nós">-1</button>
-                <button class="add" data-team="nos" data-amount="1" data-speak="um ponto para Nós" aria-label="Adicionar 1 ponto Nós">+1</button>
-                <button class="truco-btn" data-team="nos" data-amount="3" data-speak="Truco para Nós" aria-label="Adicionar 3 pontos Nós">+3</button>
-                <button class="truco-btn" data-team="nos" data-amount="6" data-speak="Seis para Nós" aria-label="Adicionar 6 pontos Nós">+6</button>
-                <button class="truco-btn" data-team="nos" data-amount="9" data-speak="Nove para Nós" aria-label="Adicionar 9 pontos Nós">+9</button>
-                <button class="truco-btn" data-team="nos" data-amount="12" data-speak="Doze para Nós" aria-label="Adicionar 12 pontos Nós">+12</button>
+                <button class="remove" data-team="nos" data-amount="-1" aria-label="Remover 1 ponto">-1</button>
+                <button class="add" data-team="nos" data-amount="1" data-speak="um ponto" aria-label="Adicionar 1 ponto">+1</button>
+                <button class="truco-btn" data-team="nos" data-amount="3" data-speak="Truco" aria-label="Adicionar 3 pontos">+3</button>
+                <button class="truco-btn" data-team="nos" data-amount="6" data-speak="Seis" aria-label="Adicionar 6 pontos">+6</button>
+                <button class="truco-btn" data-team="nos" data-amount="9" data-speak="Nove" aria-label="Adicionar 9 pontos">+9</button>
+                <button class="truco-btn" data-team="nos" data-amount="12" data-speak="Doze" aria-label="Adicionar 12 pontos">+12</button>
             </div>
         </div>
         <div class="team">
             <h2 id="team-name-eles">Eles</h2>
             <div id="score-eles" class="score eles">0</div>
             <div class="controls">
-                <button class="remove" data-team="eles" data-amount="-1" aria-label="Remover 1 ponto Eles">-1</button>
-                <button class="add" data-team="eles" data-amount="1" data-speak="um ponto para Eles" aria-label="Adicionar 1 ponto Eles">+1</button>
-                <button class="truco-btn" data-team="eles" data-amount="3" data-speak="Truco para Eles" aria-label="Adicionar 3 pontos Eles">+3</button>
-                <button class="truco-btn" data-team="eles" data-amount="6" data-speak="Seis para Eles" aria-label="Adicionar 6 pontos Eles">+6</button>
-                <button class="truco-btn" data-team="eles" data-amount="9" data-speak="Nove para Eles" aria-label="Adicionar 9 pontos Eles">+9</button>
-                <button class="truco-btn" data-team="eles" data-amount="12" data-speak="Doze para Eles" aria-label="Adicionar 12 pontos Eles">+12</button>
+                <button class="remove" data-team="eles" data-amount="-1" aria-label="Remover 1 ponto">-1</button>
+                <button class="add" data-team="eles" data-amount="1" data-speak="um ponto" aria-label="Adicionar 1 ponto">+1</button>
+                <button class="truco-btn" data-team="eles" data-amount="3" data-speak="Truco" aria-label="Adicionar 3 pontos">+3</button>
+                <button class="truco-btn" data-team="eles" data-amount="6" data-speak="Seis" aria-label="Adicionar 6 pontos">+6</button>
+                <button class="truco-btn" data-team="eles" data-amount="9" data-speak="Nove" aria-label="Adicionar 9 pontos">+9</button>
+                <button class="truco-btn" data-team="eles" data-amount="12" data-speak="Doze" aria-label="Adicionar 12 pontos">+12</button>
             </div>
         </div>
     </div>
@@ -94,11 +97,9 @@
 
     <div class="action-buttons">
         <button id="edit-teams-btn">Editar Nomes das Equipes</button>
-        <button id="edit-players-btn">Editar Nomes dos Jogadores</button>
-        <button class="reset-game-button" id="reset-game-btn">Reiniciar Jogo Atual (0-12)</button>
+        <button id="edit-players-btn">Editar Nomes dos Jogadores</button> <button class="reset-game-button" id="reset-game-btn">Reiniciar Jogo Atual</button>
         <button class="reset-all-button" id="reset-all-btn">Zerar Placar Geral</button>
-        <button id="change-game-mode-btn">Trocar Modo de Jogo</button>
-        <button id="export-history-btn">Exportar Histórico (WhatsApp)</button>
+        <button id="change-game-mode-btn">Trocar Modo de Jogo</button> <button id="export-history-btn">Exportar Histórico (WhatsApp)</button>
     </div>
 
     <div class="footer-credit">
