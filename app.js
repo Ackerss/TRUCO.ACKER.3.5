@@ -16,7 +16,7 @@ let currentTheme = 'dark';
 let wakeLock = null;
 let isSoundOn = true;
 let gameMode = 4;
-let isGameEffectivelyOver = false; // NOVA VARIÁVEL: true quando alguém atinge 12 pontos
+let isGameEffectivelyOver = false;
 
 // --- Constantes Chaves localStorage ---
 const STORAGE_KEYS = {
@@ -43,7 +43,7 @@ let scoreNosElement, scoreElesElement, prevScoreNosElement, prevScoreElesElement
     durationHistoryListElement, undoButton, teamNameNosElement, teamNameElesElement,
     themeToggleButton, soundToggleButton, bodyElement, themeMeta, mainTitleElement,
     editPlayersButton, editTeamsButton, changeGameModeButton, exportHistoryButton, footerTextElement,
-    dealerSectionElement, nextDealerButtonElement, scoreControlsContainer; // Novo: container dos botões de controle
+    dealerSectionElement, nextDealerButtonElement, scoreControlsContainer;
 
 // --- Funções de Armazenamento Local ---
 function saveData(key, data) {
@@ -77,7 +77,6 @@ function saveGameState() {
         saveData(STORAGE_KEYS.TEAM_NAME_ELES, teamNameEles);
     }
     saveData(STORAGE_KEYS.DURATION_HISTORY, matchDurationHistory);
-    // isGameEffectivelyOver não precisa ser salvo, é um estado de tempo de execução
 }
 function loadGameSettings() {
     currentTheme = loadData(STORAGE_KEYS.THEME, 'dark');
@@ -99,7 +98,6 @@ function loadGameData() {
         teamNameEles = loadData(STORAGE_KEYS.TEAM_NAME_ELES, "Eles");
     }
     matchDurationHistory = loadData(STORAGE_KEYS.DURATION_HISTORY, []);
-    // Determina se o jogo carregado estava concluído
     isGameEffectivelyOver = (scoreNos >= maxScore || scoreEles >= maxScore);
 }
 function clearSavedGameData() {
@@ -194,16 +192,14 @@ function updateSoundButtonIcon() {
     if (soundToggleButton) soundToggleButton.textContent = isSoundOn ? '🔊' : '🔇';
 }
 
-// NOVA FUNÇÃO para habilitar/desabilitar botões de pontuação
 function toggleScoreControls(enable) {
-    if (!scoreControlsContainer) { // Pega o container na primeira chamada
+    if (!scoreControlsContainer || scoreControlsContainer.length === 0) {
         scoreControlsContainer = document.querySelectorAll('.controls button');
     }
     scoreControlsContainer.forEach(button => {
         button.disabled = !enable;
     });
 }
-
 
 // --- Síntese de Voz ---
 function speakText(text, cancelPrevious = true, callback = null) {
@@ -325,9 +321,8 @@ function advanceDealer(speakAnnounce = false, callback = null) {
 
 // --- Lógica Principal de Pontuação ---
 function changeScore(team, amount, speakPointText = null) {
-    // BLOQUEIA PONTUAÇÃO SE O JOGO JÁ TERMINOU
     if (isGameEffectivelyOver) {
-        speakText("A partida terminou. Reinicie ou zere para uma nova partida.", true);
+        // A fala e o reinício automático são tratados em processMatchEnd
         return false;
     }
 
@@ -340,25 +335,20 @@ function changeScore(team, amount, speakPointText = null) {
     if (isInitialState && amount > 0 && !gameStartTime) startTimer();
 
     let currentTargetScore = team === 'nos' ? scoreNos : scoreEles;
-    // Verifica se a pontuação pode ser alterada (não ultrapassa 12 nem fica abaixo de 0)
-    // Permite zerar se for -X e o placar for X
-    if ((amount > 0 && currentTargetScore >= maxScore) || // Não pode adicionar se já está em 12 ou mais
-        (amount < 0 && currentTargetScore <= 0 && amount !== -currentTargetScore) || // Não pode remover se já está em 0 (a menos que seja para zerar exatamente)
-        (amount < 0 && (currentTargetScore + amount) < 0) // Não pode remover para ficar negativo
+    if ((amount > 0 && currentTargetScore >= maxScore) ||
+        (amount < 0 && currentTargetScore <= 0 && amount !== -currentTargetScore) ||
+        (amount < 0 && (currentTargetScore + amount) < 0)
        ) {
-        // Se a condição acima for verdadeira, mas a pontuação ainda não é maxScore (caso de tentar adicionar mais que 12)
-        // ou se está tentando remover mais do que tem, apenas retorna.
         if (!(amount > 0 && currentTargetScore >= maxScore)) {
              return false;
         }
     }
 
-
     undoState = {
         sN: scoreNos, sE: scoreEles, psN: prevScoreNos, psE: prevScoreEles,
         dI: currentDealerIndex, isI: isInitialState,
         gST: gameStartTime ? Date.now() - gameStartTime : null, mde: gameMode,
-        wasOver: isGameEffectivelyOver // Salva o estado anterior de 'isGameEffectivelyOver'
+        wasOver: isGameEffectivelyOver
     };
     if (undoButton) undoButton.disabled = false;
 
@@ -374,22 +364,21 @@ function changeScore(team, amount, speakPointText = null) {
     }
     updateCurrentGameDisplay();
 
-    // Se houver um vencedor, marca o jogo como terminado e desabilita botões
     if (winner) {
         isGameEffectivelyOver = true;
-        toggleScoreControls(false); // Desabilita botões de pontuação
+        toggleScoreControls(false);
     }
 
     const afterPointSpeechAction = () => {
         const finalAction = () => {
             if (winner) {
-                processMatchEnd(winner); // ProcessMatchEnd vai lidar com o alerta e prepareNextGame
+                processMatchEnd(winner);
             } else {
                 saveGameState();
             }
         };
-        if (amount > 0) { // Avança dealer apenas se adicionou pontos
-            advanceDealer(false, () => { // Callback do advanceDealer
+        if (amount > 0) {
+            advanceDealer(false, () => {
                 if (playerNames.length === gameMode && playerNames[currentDealerIndex]) {
                     speakText(`Embaralhador: ${playerNames[currentDealerIndex]}`, false, finalAction);
                 } else { finalAction(); }
@@ -401,9 +390,9 @@ function changeScore(team, amount, speakPointText = null) {
         let fullSpeakText = speakPointText;
         let targetName;
         if (team === 'nos') {
-            targetName = gameMode === 4 ? teamNameNos : playerNames[0];
+            targetName = gameMode === 4 ? teamNameNos : (playerNames[0] || "Jogador 1");
         } else {
-            targetName = gameMode === 4 ? teamNameEles : playerNames[1];
+            targetName = gameMode === 4 ? teamNameEles : (playerNames[1] || "Jogador 2");
         }
         fullSpeakText += ` para ${targetName}`;
         speakText(fullSpeakText, true, afterPointSpeechAction);
@@ -425,14 +414,11 @@ function undoLastAction() {
         prevScoreNos = undoState.psN; prevScoreEles = undoState.psE;
         isInitialState = undoState.isI; currentDealerIndex = undoState.dI;
         
-        // Restaura o estado de 'isGameEffectivelyOver' e habilita/desabilita botões
-        isGameEffectivelyOver = undoState.wasOver; // Restaura se o jogo ESTAVA terminado
-        // Se, após desfazer, o jogo NÃO ESTÁ mais terminado, então isGameEffectivelyOver deve ser false
+        isGameEffectivelyOver = undoState.wasOver;
         if (scoreNos < maxScore && scoreEles < maxScore) {
             isGameEffectivelyOver = false;
         }
         toggleScoreControls(!isGameEffectivelyOver);
-
 
         if (undoState.gST !== null && !gameStartTime) {
             gameStartTime = Date.now() - undoState.gST; startTimer();
@@ -449,7 +435,6 @@ function undoLastAction() {
 
 // --- Fim de Partida e Preparação para Próximo Jogo ---
 function processMatchEnd(winnerTeam) {
-    // isGameEffectivelyOver já foi setado para true e botões desabilitados em changeScore
     const durationMs = stopTimer();
     if (durationMs !== null) {
         matchDurationHistory.push({
@@ -462,7 +447,7 @@ function processMatchEnd(winnerTeam) {
         updateDurationHistoryDisplay();
     }
     undoState = null; if (undoButton) undoButton.disabled = true;
-    // updateCurrentGameDisplay(); // Já foi chamado em changeScore
+    // updateCurrentGameDisplay(); // Já chamado em changeScore
 
     let winnerNameDisplay, winningTerm = "ganhou";
     if (gameMode === 4) {
@@ -471,34 +456,32 @@ function processMatchEnd(winnerTeam) {
         winnerNameDisplay = winnerTeam === 'nos' ? (playerNames[0] || "Jogador 1") : (playerNames[1] || "Jogador 2");
     }
 
-    const speechCallback = () => {
+    const speechAndAlertCallback = () => {
         let alertMsg = `${winnerNameDisplay} venceu a partida!\n\nDuração: ${formatTime(durationMs)}\nPlacar de Partidas:\n`;
         const p1Display = gameMode === 4 ? teamNameNos : (playerNames[0] || "J1");
         const p2Display = gameMode === 4 ? teamNameEles : (playerNames[1] || "J2");
         alertMsg += `${p1Display}: ${matchesWonNos}\n${p2Display}: ${matchesWonEles}`;
-        alert(alertMsg); // Alerta informa o fim da partida
-        // A próxima partida só começa se o usuário interagir com "Reiniciar Jogo" ou "Zerar Placar"
-        // Ou, se quisermos início automático, chamamos prepareNextGame() aqui.
-        // Por enquanto, o usuário precisa clicar para iniciar a próxima.
-        // prepareNextGame() será chamado por resetCurrentGame ou resetAllScores.
+        
+        // O alerta pausa a execução do JS. prepareNextGame() será chamado DEPOIS que o usuário fechar o alerta.
+        alert(alertMsg);
         updateMatchWinsDisplay();
-        // Não chama prepareNextGame() automaticamente para que o usuário veja o placar final
-        // e os botões de pontuação permaneçam desabilitados.
+        prepareNextGame(); // AUTOMATICAMENTE PREPARA A PRÓXIMA PARTIDA APÓS O ALERT
     };
 
+    // Atraso para a fala antes do alerta
     setTimeout(() => {
         if (winnerTeam === 'nos') matchesWonNos++; else matchesWonEles++;
         saveData(STORAGE_KEYS.MATCHES_NOS, matchesWonNos);
         saveData(STORAGE_KEYS.MATCHES_ELES, matchesWonEles);
-        speakText(`${winnerNameDisplay} ${winningTerm} a partida!`, true, speechCallback);
-    }, 300); // Reduzido o delay para a fala da vitória, já que o bloqueio é imediato
+        speakText(`${winnerNameDisplay} ${winningTerm} a partida!`, true, speechAndAlertCallback);
+    }, 300);
 }
 
 function prepareNextGame(isModeChange = false) {
     scoreNos = 0; scoreEles = 0; prevScoreNos = 0; prevScoreEles = 0;
     isInitialState = true; undoState = null;
-    isGameEffectivelyOver = false; // PERMITE NOVA PARTIDA
-    toggleScoreControls(true); // REABILITA BOTÕES DE PONTUAÇÃO
+    isGameEffectivelyOver = false;
+    toggleScoreControls(true);
 
     if (undoButton) undoButton.disabled = true;
     updateCurrentGameDisplay(); resetCurrentTimerDisplay();
@@ -508,17 +491,19 @@ function prepareNextGame(isModeChange = false) {
         playerNames = [];
         if (gameMode === 4) { teamNameNos = "Nós"; teamNameEles = "Eles"; }
         getPlayerNames(true);
-    }
-    saveGameState();
-    if (!isModeChange && playerNames.length === gameMode) {
-        setTimeout(startTimer, 150);
+    } else {
+        saveGameState(); // Salva o estado zerado se não for mudança de modo
+        if (playerNames.length === gameMode && playerNames.every(name => name && name.trim() !== "")) {
+            setTimeout(startTimer, 150);
+        } else if (playerNames.length === gameMode) {
+             setTimeout(startTimer, 150);
+        }
     }
 }
 
 // --- Funções de Reset ---
 function resetCurrentGame(isModeChange = false) {
     if (isModeChange || confirm("Tem certeza que deseja reiniciar apenas o jogo atual (placar de 0 a 12)?")) {
-        // isGameEffectivelyOver e toggleScoreControls são tratados por prepareNextGame
         prepareNextGame(isModeChange);
         if (!isModeChange) speakText("Jogo atual reiniciado.");
     }
@@ -530,7 +515,6 @@ function resetAllScores() {
         matchesWonNos = 0; matchesWonEles = 0;
         if (gameMode === 4) { teamNameNos = "Nós"; teamNameEles = "Eles"; }
         playerNames = []; currentDealerIndex = 0; matchDurationHistory = [];
-        // isGameEffectivelyOver e toggleScoreControls são tratados por prepareNextGame
         updateMatchWinsDisplay(); updateScoreSectionTitles(); updateDealerDisplay();
         updateDurationHistoryDisplay();
         prepareNextGame(true);
@@ -556,7 +540,7 @@ function toggleGameMode() {
         gameMode = (gameMode === 4 ? 2 : 4);
         saveGameMode();
         updateUIBasedOnMode();
-        resetCurrentGame(true); // true para indicar que é uma mudança de modo
+        resetCurrentGame(true);
         speakText(`Modo alterado para ${gameMode} jogadores. Configure os nomes.`, true);
     }
 }
@@ -616,7 +600,7 @@ function addEventListeners() {
     soundToggleButton?.addEventListener('click', toggleSound);
     nextDealerButtonElement?.addEventListener('click', () => {
         if (isGameEffectivelyOver) {
-            speakText("A partida terminou. Reinicie para continuar.", true);
+            speakText("A partida terminou. Uma nova partida será iniciada em breve.", true);
             return;
         }
         advanceDealer(true);
@@ -659,7 +643,7 @@ function initializeApp() {
     // scoreControlsContainer é definido na primeira chamada de toggleScoreControls
 
     loadGameSettings(); setTheme(currentTheme); setSound(isSoundOn);
-    loadGameData(); // isGameEffectivelyOver é definido aqui com base nos scores carregados
+    loadGameData();
     updateUIBasedOnMode();
     updateMainTitle(); updateFooterCredit(); updateCurrentGameDisplay();
     updateMatchWinsDisplay();
@@ -667,14 +651,15 @@ function initializeApp() {
     if (undoButton) undoButton.disabled = (undoState === null);
     addEventListeners();
 
-    toggleScoreControls(!isGameEffectivelyOver); // Habilita/desabilita botões com base no estado carregado
+    toggleScoreControls(!isGameEffectivelyOver);
 
     const numExpectedPlayers = gameMode;
+    // Verifica se os nomes estão definidos (não são vazios ou apenas espaços)
     if (playerNames.length !== numExpectedPlayers || !playerNames.every(name => name && name.trim() !== "")) {
         setTimeout(() => getPlayerNames(true), 300);
     } else {
         resetCurrentTimerDisplay();
-        if (gameStartTime && !isGameEffectivelyOver) { // Só reinicia timer se o jogo não tinha terminado
+        if (gameStartTime && !isGameEffectivelyOver) {
             const elapsed = Date.now() - gameStartTime;
             currentTimerElement.textContent = formatTime(elapsed);
             startTimer();
