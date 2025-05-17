@@ -17,11 +17,11 @@ let wakeLock = null;
 let isSoundOn = true;
 let numberOfPlayers = 0;
 
-// --- Novos sons ---
+// --- Efeitos Sonoros Extras (pode customizar com seus próprios arquivos se quiser) ---
 const soundEffects = {
-    win: new Audio('https://cdn.jsdelivr.net/gh/jacsonduarte/sfx/win.mp3'),
-    undo: new Audio('https://cdn.jsdelivr.net/gh/jacsonduarte/sfx/undo.mp3'),
-    draw: new Audio('https://cdn.jsdelivr.net/gh/jacsonduarte/sfx/draw.mp3')
+    win: new Audio('https://cdn.pixabay.com/audio/2022/07/26/audio_124bfa8e41.mp3'), // Vitórias
+    undo: new Audio('https://cdn.pixabay.com/audio/2022/07/26/audio_123c2b0a8b.mp3'), // Desfazer
+    draw: new Audio('https://cdn.pixabay.com/audio/2022/08/20/audio_12c81b4f7c.mp3') // Empate/Outros
 };
 
 // --- Constantes Chaves localStorage ---
@@ -164,7 +164,7 @@ function updateEditButtonText() {
     }
 }
 
-// --- Exportação do Histórico ---
+// --- Exportação do Histórico (WhatsApp + copiar) ---
 function exportHistory() {
     if (matchDurationHistory.length === 0) {
         alert("Não há partidas no histórico para exportar.");
@@ -178,7 +178,6 @@ function exportHistory() {
         texto += `Partida ${n}: Tempo: ${time} - Vencedor: ${winner}\n`;
     });
     texto += `Placar Total: ${teamNameNos} ${matchesWonNos} x ${matchesWonEles} ${teamNameEles}`;
-    // Opção: Copiar para área de transferência
     navigator.clipboard.writeText(texto).then(() => {
         let whatsappMsg = encodeURIComponent(texto);
         let url = `https://wa.me/?text=${whatsappMsg}`;
@@ -224,8 +223,6 @@ function speakText(text, cancelPrevious = true) {
         window.speechSynthesis.speak(utterance);
     }, cancelPrevious ? 50 : 0);
 }
-
-// --- Sons Extras ---
 function playEffect(name) {
     if (isSoundOn && soundEffects[name]) {
         soundEffects[name].currentTime = 0;
@@ -284,12 +281,11 @@ document.addEventListener('visibilitychange', async () => {
     else if (document.visibilityState === 'visible' && gameStartTime) await requestWakeLock();
 });
 
-// --- Nomes dos Jogadores (Validação de duplicados) ---
+// --- Nomes dos Jogadores (Sem Duplicados) ---
 function getPlayerNames() {
     if (numberOfPlayers === 0) { showPlayerModeModal(); return; }
     playerNames = [];
-    const promptMessage = `Defina os ${numberOfPlayers} jogadores para o rodízio do embaralhador...`;
-    alert(promptMessage);
+    alert(`Defina os ${numberOfPlayers} jogadores para o rodízio do embaralhador...`);
     for (let i = 1; i <= numberOfPlayers; i++) {
         let playerNameInput = prompt(`Nome do Jogador ${i}:`);
         while (!playerNameInput || playerNameInput.trim() === "" ||
@@ -323,19 +319,7 @@ function getPlayerNames() {
     }
 }
 
-// --- Checar se nomes estão corretos ---
-function ensurePlayerNamesAreSet() {
-    if (numberOfPlayers > 0 && playerNames.length !== numberOfPlayers) {
-        setTimeout(() => {
-            alert(`Por favor, defina os nomes para o modo de ${numberOfPlayers} jogadores.`);
-            getPlayerNames();
-        }, 150);
-    } else if (numberOfPlayers > 0 && playerNames.length === numberOfPlayers && isInitialState && !gameStartTime) {
-        startTimer();
-    }
-}
-
-// --- Editar Nomes das Equipes/Jogadores ---
+// --- Editar Nomes dos Jogadores/Equipes (Sem Duplicados) ---
 function editTeamNames() {
     if (numberOfPlayers === 0) {
         alert("Primeiro selecione o modo de jogo.");
@@ -348,25 +332,260 @@ function editTeamNames() {
             getPlayerNames();
             return;
         }
-        let newNameP1 = prompt("Novo nome para Jogador 1:", playerNames[0]);
-        if (newNameP1 && newNameP1.trim() !== "" && newNameP1.trim() !== playerNames[1]) {
-            playerNames[0] = newNameP1.trim();
-            teamNameNos = playerNames[0];
+        let novoNome1 = prompt("Novo nome para Jogador 1:", playerNames[0]);
+        let novoNome2 = prompt("Novo nome para Jogador 2:", playerNames[1]);
+        if (!novoNome1 || !novoNome2 || novoNome1.trim() === "" || novoNome2.trim() === "" || novoNome1.trim() === novoNome2.trim()) {
+            alert("Nomes inválidos ou duplicados. Não foi possível alterar.");
+            return;
         }
-        let newNameP2 = prompt("Novo nome para Jogador 2:", playerNames[1]);
-        if (newNameP2 && newNameP2.trim() !== "" && newNameP2.trim() !== playerNames[0]) {
-            playerNames[1] = newNameP2.trim();
-            teamNameEles = playerNames[1];
-        }
+        playerNames[0] = novoNome1.trim();
+        playerNames[1] = novoNome2.trim();
+        teamNameNos = playerNames[0];
+        teamNameEles = playerNames[1];
         saveData(STORAGE_KEYS.PLAYER_NAMES, playerNames);
     } else {
         let newTeamNameNos = prompt("Novo nome para a Equipe 1:", teamNameNos);
-        if (newTeamNameNos && newTeamNameNos.trim() !== "") teamNameNos = newTeamNameNos.trim();
         let newTeamNameEles = prompt("Novo nome para a Equipe 2:", teamNameEles);
-        if (newTeamNameEles && newTeamNameEles.trim() !== "") teamNameEles = newTeamNameEles.trim();
+        if (newTeamNameNos && newTeamNameNos.trim() !== "") teamNameNos = newTeamNameNos.trim();
+        if (newTeamNameEles && newTeamNameEles.trim() !== "" && newTeamNameEles.trim() !== teamNameNos) teamNameEles = newTeamNameEles.trim();
     }
     saveData(STORAGE_KEYS.TEAM_NAME_NOS, teamNameNos);
     saveData(STORAGE_KEYS.TEAM_NAME_ELES, teamNameEles);
     updateTeamNameDisplay();
     updateDealerDisplay();
-    updateDurationHistory
+    updateDurationHistoryDisplay();
+    speakText("Nomes atualizados.");
+}
+
+// --- Avançar Embaralhador ---
+function advanceDealer(speakAnnounce = false) {
+    if (numberOfPlayers === 0 || playerNames.length !== numberOfPlayers) {
+        if (speakAnnounce) alert(`Primeiro defina o modo de jogo e os ${numberOfPlayers || 'devidos'} nomes dos jogadores.`);
+        return false;
+    }
+    currentDealerIndex = (currentDealerIndex + 1) % numberOfPlayers;
+    saveData(STORAGE_KEYS.DEALER_INDEX, currentDealerIndex);
+    updateDealerDisplay();
+    if (speakAnnounce && playerNames.length > 0 && playerNames[currentDealerIndex]) {
+        speakText(`Próximo a embaralhar: ${playerNames[currentDealerIndex]}`, true);
+    }
+    return true;
+}
+
+// --- Lógica Principal de Pontuação ---
+function changeScore(team, amount, speakPointText = null) {
+    if (numberOfPlayers === 0 || playerNames.length !== numberOfPlayers) {
+        alert("Por favor, configure o modo de jogo e os nomes dos jogadores antes de pontuar.");
+        if (numberOfPlayers === 0) showPlayerModeModal(); else getPlayerNames();
+        return false;
+    }
+    if (isInitialState && amount > 0 && !gameStartTime && playerNames.length === numberOfPlayers) startTimer();
+    let currentTargetScore = team === 'nos' ? scoreNos : scoreEles;
+    if ((amount > 0 && currentTargetScore >= maxScore) || (amount < 0 && currentTargetScore <= 0)) return false;
+    undoState = { sN: scoreNos, sE: scoreEles, psN: prevScoreNos, psE: prevScoreEles, dI: currentDealerIndex, isI: isInitialState, gST_elapsed: gameStartTime ? (Date.now() - gameStartTime) : null };
+    if (undoButton) undoButton.disabled = false;
+    prevScoreNos = scoreNos; prevScoreEles = scoreEles; isInitialState = false;
+    let winner = null;
+    if (team === 'nos') {
+        scoreNos = Math.min(maxScore, Math.max(0, scoreNos + amount));
+        if (scoreNos === maxScore) winner = 'nos';
+    } else {
+        scoreEles = Math.min(maxScore, Math.max(0, scoreEles + amount));
+        if (scoreEles === maxScore) winner = 'eles';
+    }
+    updateCurrentGameDisplay();
+    if (amount > 0) {
+        if (speakPointText) speakText(speakPointText, true);
+        const dealerAdvanced = advanceDealer(false);
+        if (dealerAdvanced && playerNames.length > 0 && playerNames[currentDealerIndex]) {
+            setTimeout(() => speakText(`Embaralhador: ${playerNames[currentDealerIndex]}`, true), 800);
+        }
+    }
+    if (winner) processMatchEnd(winner); else saveGameState();
+    return true;
+}
+
+// --- Desfazer Última Ação ---
+function undoLastAction() {
+    if (undoState) {
+        scoreNos = undoState.sN; scoreEles = undoState.sE;
+        prevScoreNos = undoState.psN; prevScoreEles = undoState.psE;
+        currentDealerIndex = undoState.dI; isInitialState = undoState.isI;
+        if (undoState.gST_elapsed !== null && !isInitialState) {
+            stopTimer(); gameStartTime = Date.now() - undoState.gST_elapsed; startTimer();
+            if (currentTimerElement) currentTimerElement.textContent = formatTime(undoState.gST_elapsed);
+        } else if (isInitialState) { resetCurrentTimerDisplay(); }
+        updateCurrentGameDisplay(); updateDealerDisplay(); saveGameState();
+        undoState = null; if (undoButton) undoButton.disabled = true;
+        playEffect('undo');
+        speakText("Última ação desfeita", true);
+    } else {
+        speakText("Nada para desfazer", true); if (undoButton) undoButton.disabled = true;
+    }
+}
+
+// --- Fim de Partida ---
+function processMatchEnd(winnerTeam) {
+    const durationMs = stopTimer();
+    if (durationMs !== null) {
+        matchDurationHistory.push({ duration: durationMs, winner: winnerTeam });
+        saveData(STORAGE_KEYS.DURATION_HISTORY, matchDurationHistory);
+        updateDurationHistoryDisplay();
+    }
+    undoState = null; if (undoButton) undoButton.disabled = true;
+    updateCurrentGameDisplay();
+    setTimeout(() => {
+        const winnerNameDisplay = winnerTeam === 'nos' ? teamNameNos : teamNameEles;
+        if (winnerTeam === 'nos') matchesWonNos++; else matchesWonEles++;
+        saveData(STORAGE_KEYS.MATCHES_NOS, matchesWonNos);
+        saveData(STORAGE_KEYS.MATCHES_ELES, matchesWonEles);
+        setTimeout(() => {
+            playEffect('win');
+            speakText(`${winnerNameDisplay} ${winnerTeam === 'nos' ? 'ganhou' : 'ganharam'} a partida!`, true);
+            alert(`${winnerNameDisplay} venceu a partida!\n\nDuração: ${formatTime(durationMs)}\nPlacar de partidas: ${teamNameNos} ${matchesWonNos} x ${matchesWonEles} ${teamNameEles}`);
+            updateMatchWinsDisplay(); prepareNextGame();
+        }, 300);
+    }, 850);
+}
+
+// --- Prepara Próximo Jogo ---
+function prepareNextGame() {
+    scoreNos = 0; scoreEles = 0; prevScoreNos = 0; prevScoreEles = 0; isInitialState = true;
+    undoState = null; if (undoButton) undoButton.disabled = true;
+    updateCurrentGameDisplay(); resetCurrentTimerDisplay();
+    if (numberOfPlayers > 0 && playerNames.length === numberOfPlayers) {
+        setTimeout(() => { startTimer(); saveGameState(); }, 100);
+    } else { saveGameState(); }
+}
+function resetCurrentGameScoresAndState() {
+    undoState = null; if (undoButton) undoButton.disabled = true;
+    prepareNextGame();
+}
+
+// --- Funções de Reset ---
+function resetCurrentGame() {
+    if (numberOfPlayers === 0 || playerNames.length !== numberOfPlayers) {
+        alert("Configure o modo de jogo e os nomes dos jogadores primeiro.");
+        if (numberOfPlayers === 0) showPlayerModeModal(); else getPlayerNames();
+        return;
+    }
+    if (confirm("Tem certeza que deseja reiniciar apenas o jogo atual (placar de 0 a 12)?")) {
+        resetCurrentGameScoresAndState(); speakText("Jogo atual reiniciado.");
+    }
+}
+function resetAllScores() {
+    if (confirm("!!! ATENÇÃO !!!\n\nTem certeza que deseja ZERAR TODO o placar?\n\nIsso inclui:\n- Partidas ganhas\n- Jogo atual\n- Nomes dos jogadores e modo de jogo\n- Histórico de tempos\n\nEsta ação não pode ser desfeita.")) {
+        clearSavedGameData();
+        matchesWonNos = 0; matchesWonEles = 0; playerNames = []; currentDealerIndex = 0;
+        teamNameNos = "Nós"; teamNameEles = "Eles"; matchDurationHistory = [];
+        undoState = null; if (undoButton) undoButton.disabled = true;
+        updateMatchWinsDisplay(); updateDealerDisplay(); updateDurationHistoryDisplay(); updateTeamNameDisplay();
+        resetCurrentGameScoresAndState();
+        updateEditButtonText();
+        speakText("Placar geral e configurações zerados.");
+        showPlayerModeModal();
+    }
+}
+
+// --- Tema e Som ---
+function setTheme(themeName) {
+    if (!bodyElement || !themeToggleButton || !themeMeta) return;
+    bodyElement.className = themeName + '-theme'; currentTheme = themeName;
+    saveData(STORAGE_KEYS.THEME, themeName);
+    themeToggleButton.textContent = themeName === 'dark' ? '☀️' : '🌙';
+    themeMeta.content = themeName === 'dark' ? '#1f1f1f' : '#f0f0f0';
+}
+function toggleTheme() { setTheme(currentTheme === 'dark' ? 'light' : 'dark'); }
+function setSound(soundOn) {
+    isSoundOn = soundOn; saveData(STORAGE_KEYS.SOUND_ON, isSoundOn); updateSoundButtonIcon();
+}
+function toggleSound() {
+    setSound(!isSoundOn);
+    if (isSoundOn) speakText("Som ativado.", true);
+    else if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+}
+
+// --- Adiciona Listeners de Eventos ---
+function addEventListeners() {
+    document.querySelector('.teams').addEventListener('click', event => {
+        const button = event.target.closest('button');
+        if (button && button.dataset.team && button.dataset.amount) {
+            changeScore(button.dataset.team, parseInt(button.dataset.amount, 10), button.dataset.speak);
+        }
+    });
+    document.getElementById('next-dealer-btn')?.addEventListener('click', () => advanceDealer(true));
+    document.getElementById('undo-button')?.addEventListener('click', undoLastAction);
+    editTeamsButtonElement?.addEventListener('click', editTeamNames);
+    document.getElementById('reset-game-btn')?.addEventListener('click', resetCurrentGame);
+    document.getElementById('reset-all-btn')?.addEventListener('click', resetAllScores);
+    document.getElementById('theme-toggle-btn')?.addEventListener('click', toggleTheme);
+    document.getElementById('sound-toggle-btn')?.addEventListener('click', toggleSound);
+    select2PlayersBtn?.addEventListener('click', () => selectPlayerMode(2));
+    select4PlayersBtn?.addEventListener('click', () => selectPlayerMode(4));
+    changeGameModeBtn?.addEventListener('click', () => {
+        if (confirm("Mudar o modo de jogo irá reiniciar a partida atual, incluindo placares e nomes dos jogadores. Deseja continuar?")) {
+            showPlayerModeModal();
+        }
+    });
+    // Botão de exportação (adicionar no HTML próximo dos outros botões)
+    if (!exportHistoryBtn && document.getElementById('export-history-btn')) {
+        exportHistoryBtn = document.getElementById('export-history-btn');
+        exportHistoryBtn.addEventListener('click', exportHistory);
+    }
+}
+
+// --- Inicialização do Aplicativo ---
+function initializeApp() {
+    scoreNosElement = document.getElementById('score-nos');
+    scoreElesElement = document.getElementById('score-eles');
+    prevScoreNosElement = document.getElementById('prev-score-nos');
+    prevScoreElesElement = document.getElementById('prev-score-eles');
+    matchWinsNosElement = document.getElementById('match-wins-nos');
+    matchWinsElesElement = document.getElementById('match-wins-eles');
+    dealerNameElement = document.getElementById('current-dealer-name');
+    currentTimerElement = document.getElementById('current-timer-display');
+    durationHistoryListElement = document.getElementById('duration-history-list');
+    undoButton = document.getElementById('undo-button');
+    teamNameNosElement = document.getElementById('team-name-nos');
+    teamNameElesElement = document.getElementById('team-name-eles');
+    themeToggleButton = document.getElementById('theme-toggle-btn');
+    soundToggleButton = document.getElementById('sound-toggle-btn');
+    bodyElement = document.body;
+    themeMeta = document.getElementById('theme-color-meta');
+    playerModeModal = document.getElementById('player-mode-modal');
+    select2PlayersBtn = document.getElementById('select-2-players-btn');
+    select4PlayersBtn = document.getElementById('select-4-players-btn');
+    changeGameModeBtn = document.getElementById('change-game-mode-btn');
+    editTeamsButtonElement = document.getElementById('edit-teams-btn');
+    exportHistoryBtn = document.getElementById('export-history-btn'); // Novo botão
+
+    loadGameSettings();
+    loadGameData();
+
+    if (numberOfPlayers === 2 && playerNames.length === 2) {
+        teamNameNos = playerNames[0];
+        teamNameEles = playerNames[1];
+    }
+
+    setTheme(currentTheme);
+    setSound(isSoundOn);
+    updateEditButtonText();
+
+    updateCurrentGameDisplay();
+    updateMatchWinsDisplay();
+    updateTeamNameDisplay();
+    updateDealerDisplay();
+    updateDurationHistoryDisplay();
+    if (undoButton) undoButton.disabled = (undoState === null);
+
+    addEventListeners();
+
+    if (numberOfPlayers === 0) {
+        setTimeout(showPlayerModeModal, 50);
+    } else {
+        if (playerNames.length !== numberOfPlayers) setTimeout(getPlayerNames, 100);
+        else if (!gameStartTime && !isInitialState) resetCurrentTimerDisplay();
+        else if (isInitialState) resetCurrentTimerDisplay();
+    }
+}
+document.addEventListener('DOMContentLoaded', initializeApp);
