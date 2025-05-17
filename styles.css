@@ -172,20 +172,31 @@ body {
     border: 1px solid var(--border-color); position: relative;
     transition: background-color 0.3s ease, border-color 0.3s ease;
 }
-h1 {
-    color: var(--title-color); margin-top: 0; margin-bottom: 20px;
-    font-size: 1.8em; font-weight: 600;
+h1 { /* Título Principal: Marcador Truco Acker */
+    color: var(--title-color);
+    margin-top: 5px; /* Reduzido para dar espaço aos botões acima se necessário, mas o principal é o top dos botões */
+    margin-bottom: 20px;
+    font-size: 1.8em;
+    font-weight: 600;
     text-shadow: 0 1px 2px var(--shadow-color-darkest);
+    padding-top: 45px; /* Adiciona espaço no topo do H1 para os botões não sobreporem o texto */
+    position: relative; /* Para garantir que o padding-top funcione bem com botões absolutos */
 }
 h2, h3, h4 { color: var(--text-color-light); font-weight: 500; }
 hr { border: none; border-top: 1px solid var(--border-color); margin: 25px 0; }
 
-.hidden { display: none !important; } /* Classe para ocultar elementos */
+.hidden { display: none !important; }
 
 /* --- Botões de Configuração no Topo --- */
 .top-config-buttons {
-    position: absolute; top: 12px; right: 12px; display: flex;
-    flex-direction: column; align-items: flex-end; gap: 8px;
+    position: absolute;
+    top: 15px; /* AUMENTADO de 12px para 15px ou mais se necessário */
+    right: 15px; /* AUMENTADO de 12px para 15px ou mais se necessário */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    z-index: 10; /* Garante que fiquem sobre outros elementos se houver sobreposição */
 }
 #theme-toggle-btn, #sound-toggle-btn {
     background: var(--section-bg); color: var(--text-color-lighter);
