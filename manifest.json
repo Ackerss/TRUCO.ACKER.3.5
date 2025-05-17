@@ -1,7 +1,7 @@
 {
-  "name": "Marcador Truco Pro",
-  "short_name": "Truco",
-  "description": "Marcador de Pontos para Truco com Voz e Recursos",
+  "name": "Marcador Truco Acker Pro",
+  "short_name": "Truco Acker",
+  "description": "Marcador de Pontos para Truco com Voz, Times e Jogadores Editáveis, Histórico e Exportação.",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#2d2d2d",
@@ -19,5 +19,6 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "lang": "pt-BR"
 }
