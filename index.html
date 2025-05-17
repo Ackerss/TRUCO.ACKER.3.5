@@ -1,126 +1,122 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Marcador Truco Pro</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#222222" id="theme-color-meta">
+    <title>Marcador Truco Pro</title>
 
-  <link rel="manifest" href="manifest.json">
-  <meta id="theme-color-meta" name="theme-color" content="#1f1f1f">
-  <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png"> <link rel="stylesheet" href="styles.css">
+
+    <script>
+        // Registra o Service Worker para funcionalidade offline
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').then(registration => {
+                    console.log('SW registrado com escopo:', registration.scope);
+                }, function(err) {
+                    console.log('Falha no registro do SW:', err);
+                });
+            });
+        }
+    </script>
 </head>
 <body class="dark-theme">
-<div class="scoreboard">
 
-  <!-- Config -->
-  <div class="top-config-buttons">
-    <button id="theme-toggle-btn" title="Tema">☀️</button>
-    <button id="sound-toggle-btn" title="Som">🔊</button>
-  </div>
-
-  <h1>Marcador Truco Pro</h1>
-
-  <!-- Modal modo -->
-  <div id="player-mode-modal" class="modal-overlay" style="display:none;">
+<div id="player-mode-modal" class="modal-overlay" style="display: none;">
     <div class="modal-content">
-      <h2>Selecione o Modo</h2>
-      <p class="modal-note">Define o rodízio do embaralhador</p>
-      <div class="modal-actions">
-        <button id="select-2-players-btn">2 Jogadores</button>
-        <button id="select-4-players-btn">4 Jogadores</button>
-      </div>
+        <h2>Selecione o Modo de Jogo</h2>
+        <p>Quantos jogadores participarão da partida?</p>
+        <div class="modal-actions">
+            <button id="select-2-players-btn" class="modal-button">2 Jogadores</button>
+            <button id="select-4-players-btn" class="modal-button">4 Jogadores</button>
+        </div>
+        <p class="modal-note">Esta escolha definirá o rodízio do embaralhador.</p>
     </div>
-  </div>
+</div>
 
-  <!-- Cronômetro -->
-  <div class="timer-section">
-    <h3>Tempo da Partida</h3>
-    <p id="current-timer-display">00:00</p>
-  </div>
+<div class="scoreboard">
+    <div class="top-config-buttons">
+        <button id="theme-toggle-btn" title="Alternar Tema">☀️</button> <button id="sound-toggle-btn" title="Alternar Som">🔊</button> </div>
 
-  <!-- Partidas ganhas -->
-  <div class="match-wins-section">
-    <h2>Partidas Ganhas</h2>
-    <div class="match-wins-display">
-      <span id="match-wins-nos" class="nos">0</span> vs
-      <span id="match-wins-eles" class="eles">0</span>
-    </div>
-  </div>
+    <h1>Marcador Truco Pro</h1>
 
-  <!-- Embaralhador -->
-  <div class="dealer-section">
-    <h3>Embaralhador Atual:</h3>
-    <p id="current-dealer-name">--</p>
-    <button id="next-dealer-btn">Próximo Embaralhador</button>
-  </div>
-
-  <hr>
-
-  <!-- Times / Jogadores -->
-  <div class="teams">
-    <div class="team">
-      <h2 id="team-name-nos">Nós</h2>
-      <div id="score-nos" class="score nos">0</div>
-      <div class="controls">
-        <button class="remove" data-team="nos"  data-amount="-1">-1</button>
-        <button class="add"    data-team="nos"  data-amount="1">+1</button>
-        <button class="truco-btn" data-team="nos" data-amount="3" >+3</button>
-        <button class="truco-btn" data-team="nos" data-amount="6" >+6</button>
-        <button class="truco-btn" data-team="nos" data-amount="9" >+9</button>
-        <button class="truco-btn" data-team="nos" data-amount="12">+12</button>
-      </div>
+    <div class="timer-section">
+        <h3>Tempo do Jogo Atual:</h3>
+        <p id="current-timer-display">00:00</p>
     </div>
 
-    <div class="team">
-      <h2 id="team-name-eles">Eles</h2>
-      <div id="score-eles" class="score eles">0</div>
-      <div class="controls">
-        <button class="remove" data-team="eles" data-amount="-1">-1</button>
-        <button class="add"    data-team="eles" data-amount="1">+1</button>
-        <button class="truco-btn" data-team="eles" data-amount="3" >+3</button>
-        <button class="truco-btn" data-team="eles" data-amount="6" >+6</button>
-        <button class="truco-btn" data-team="eles" data-amount="9" >+9</button>
-        <button class="truco-btn" data-team="eles" data-amount="12">+12</button>
-      </div>
+    <div class="match-wins-section">
+        <h2>Partidas Ganhas</h2>
+        <div class="match-wins-display">
+            <span id="match-wins-nos" class="nos">0</span> vs <span id="match-wins-eles" class="eles">0</span>
+        </div>
     </div>
-  </div>
 
-  <!-- Desfazer -->
-  <div class="undo-section">
-    <button id="undo-button" disabled>Desfazer Última Ação</button>
-  </div>
-
-  <hr>
-
-  <!-- Placar anterior -->
-  <div class="history-section">
-    <h3>Placar Anterior (Jogo Atual)</h3>
-    <div class="history-score">
-      <span id="prev-score-nos" class="nos">-</span> a
-      <span id="prev-score-eles" class="eles">-</span>
+    <div class="dealer-section">
+        <h3>Embaralhador Atual:</h3>
+        <p id="current-dealer-name">-- Carregando --</p>
+        <button id="next-dealer-btn">Próximo Embaralhador</button>
     </div>
-  </div>
 
-  <!-- Durações -->
-  <div class="duration-history-section">
-    <h4>Histórico de Duração:</h4>
-    <ul id="duration-history-list">
-      <li>Nenhuma partida concluída.</li>
-    </ul>
-  </div>
+    <hr>
+    <div class="teams">
+        <div class="team">
+            <h2 id="team-name-nos">Nós</h2>
+            <div id="score-nos" class="score nos">0</div>
+            <div class="controls">
+                <button class="remove" data-team="nos" data-amount="-1" aria-label="Remover 1 ponto Nós">-1</button>
+                <button class="add" data-team="nos" data-amount="1" data-speak="um" aria-label="Adicionar 1 ponto Nós">+1</button>
+                <button class="truco-btn" data-team="nos" data-amount="3" data-speak="Truco" aria-label="Adicionar 3 pontos Nós">+3</button>
+                <button class="truco-btn" data-team="nos" data-amount="6" data-speak="Seis" aria-label="Adicionar 6 pontos Nós">+6</button>
+                <button class="truco-btn" data-team="nos" data-amount="9" data-speak="Nove" aria-label="Adicionar 9 pontos Nós">+9</button>
+                <button class="truco-btn" data-team="nos" data-amount="12" data-speak="Doze" aria-label="Adicionar 12 pontos Nós">+12</button>
+            </div>
+            </div>
+        <div class="team">
+            <h2 id="team-name-eles">Eles</h2>
+            <div id="score-eles" class="score eles">0</div>
+            <div class="controls">
+                <button class="remove" data-team="eles" data-amount="-1" aria-label="Remover 1 ponto Eles">-1</button>
+                <button class="add" data-team="eles" data-amount="1" data-speak="um" aria-label="Adicionar 1 ponto Eles">+1</button>
+                <button class="truco-btn" data-team="eles" data-amount="3" data-speak="Truco" aria-label="Adicionar 3 pontos Eles">+3</button>
+                <button class="truco-btn" data-team="eles" data-amount="6" data-speak="Seis" aria-label="Adicionar 6 pontos Eles">+6</button>
+                <button class="truco-btn" data-team="eles" data-amount="9" data-speak="Nove" aria-label="Adicionar 9 pontos Eles">+9</button>
+                <button class="truco-btn" data-team="eles" data-amount="12" data-speak="Doze" aria-label="Adicionar 12 pontos Eles">+12</button>
+            </div>
+            </div>
+    </div>
 
-  <!-- Ações -->
-  <div class="action-buttons">
-    <button id="edit-teams-btn">Editar Nomes</button>
-    <button id="reset-game-btn"  class="reset-game-button">Reiniciar Partida Atual</button>
-    <button id="reset-all-btn"   class="reset-all-button">Zerar Placar Geral</button>
-    <button id="change-game-mode-btn">Trocar Modo de Jogo</button> <!-- penúltimo -->
-    <button id="export-history-btn">Exportar Histórico</button>    <!-- último -->
-  </div>
+    <div class="undo-section">
+        <button id="undo-button" disabled>Desfazer Última Ação</button>
+    </div>
 
-  <div class="footer-credit">
-    <p>Desenvolvido por Jacson A. Duarte</p>
-  </div>
+    <hr>
+    <div class="history-section">
+        <h3>Placar Anterior (Jogo Atual)</h3>
+        <div class="history-score">
+            <span id="prev-score-nos" class="nos">-</span> a <span id="prev-score-eles" class="eles">-</span>
+        </div>
+    </div>
+
+    <div class="duration-history-section">
+        <h4>Histórico de Duração das Partidas:</h4>
+        <ul id="duration-history-list">
+            <li>Carregando histórico...</li>
+        </ul>
+    </div>
+
+    <div class="action-buttons">
+        <button id="edit-teams-btn">Editar Nomes</button> <button class="reset-game-button" id="reset-game-btn">Reiniciar Partida Atual</button>
+        <button id="change-game-mode-btn">Alterar Modo de Jogo</button>
+        <button class="reset-all-button" id="reset-all-btn">Zerar Placar Geral</button>
+        <button id="export-history-btn">Exportar Histórico</button>
+    </div>
+
+    <div class="footer-credit">
+        <p>Desenvolvido por Jacson A. Duarte e colaboração inicial Diego Galafassi</p>
+    </div>
 </div>
 
 <script src="app.js"></script>
