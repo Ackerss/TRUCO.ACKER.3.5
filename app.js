@@ -4,36 +4,36 @@ let prevScoreNos = 0, prevScoreEles = 0;
 let isInitialState = true;
 const maxScore = 12;
 let matchesWonNos = 0, matchesWonEles = 0;
-let playerNames = []; // Modo 4: [J1, J2, J3, J4], Modo 2: [P1, P2]
-let currentDealerIndex = 0; // Alterna entre 0-3 (4P) ou 0-1 (2P)
+let playerNames = [];
+let currentDealerIndex = 0;
 let timerIntervalId = null;
 let gameStartTime = null;
 let matchDurationHistory = [];
 let undoState = null;
-let teamNameNos = "Nós"; // Usado apenas no modo 4 jogadores para UI
-let teamNameEles = "Eles"; // Usado apenas no modo 4 jogadores para UI
+let teamNameNos = "Nós";
+let teamNameEles = "Eles";
 let currentTheme = 'dark';
 let wakeLock = null;
 let isSoundOn = true;
-let gameMode = 4; // 4 para 4 jogadores, 2 para 2 jogadores. Padrão 4.
+let gameMode = 4;
 
 // --- Constantes Chaves localStorage ---
 const STORAGE_KEYS = {
-    SCORE_NOS: 'truco_acker_scoreNos',
-    SCORE_ELES: 'truco_acker_scoreEles',
-    PREV_SCORE_NOS: 'truco_acker_prevScoreNos',
-    PREV_SCORE_ELES: 'truco_acker_prevScoreEles',
-    IS_INITIAL: 'truco_acker_isInitial',
-    MATCHES_NOS: 'truco_acker_matchesNos',
-    MATCHES_ELES: 'truco_acker_matchesEles',
-    PLAYER_NAMES: 'truco_acker_playerNames',
-    DEALER_INDEX: 'truco_acker_dealerIndex',
-    TEAM_NAME_NOS: 'truco_acker_teamNameNos',
-    TEAM_NAME_ELES: 'truco_acker_teamNameEles',
-    DURATION_HISTORY: 'truco_acker_durationHistory',
-    THEME: 'truco_acker_theme',
-    SOUND_ON: 'truco_acker_soundOn',
-    GAME_MODE: 'truco_acker_gameMode'
+    SCORE_NOS: 'truco_acker_scoreNos_v2', // Adicionado _v2 para evitar conflito com versões antigas se necessário
+    SCORE_ELES: 'truco_acker_scoreEles_v2',
+    PREV_SCORE_NOS: 'truco_acker_prevScoreNos_v2',
+    PREV_SCORE_ELES: 'truco_acker_prevScoreEles_v2',
+    IS_INITIAL: 'truco_acker_isInitial_v2',
+    MATCHES_NOS: 'truco_acker_matchesNos_v2',
+    MATCHES_ELES: 'truco_acker_matchesEles_v2',
+    PLAYER_NAMES: 'truco_acker_playerNames_v2',
+    DEALER_INDEX: 'truco_acker_dealerIndex_v2',
+    TEAM_NAME_NOS: 'truco_acker_teamNameNos_v2',
+    TEAM_NAME_ELES: 'truco_acker_teamNameEles_v2',
+    DURATION_HISTORY: 'truco_acker_durationHistory_v2',
+    THEME: 'truco_acker_theme_v2',
+    SOUND_ON: 'truco_acker_soundOn_v2',
+    GAME_MODE: 'truco_acker_gameMode_v2'
 };
 
 // --- Elementos do DOM ---
@@ -41,7 +41,7 @@ let scoreNosElement, scoreElesElement, prevScoreNosElement, prevScoreElesElement
     matchWinsNosElement, matchWinsElesElement, dealerNameElement, currentTimerElement,
     durationHistoryListElement, undoButton, teamNameNosElement, teamNameElesElement,
     themeToggleButton, soundToggleButton, bodyElement, themeMeta, mainTitleElement,
-    editPlayersButton, editTeamsButton, changeGameModeButton, exportHistoryButton, footerCreditElement,
+    editPlayersButton, editTeamsButton, changeGameModeButton, exportHistoryButton, footerTextElement, // Renomeado para footerTextElement
     dealerSectionElement, nextDealerButtonElement;
 
 // --- Funções de Armazenamento Local ---
@@ -58,14 +58,8 @@ function loadData(key, defaultValue = null) {
         return defaultValue;
     }
 }
-
-function saveGameMode() {
-    saveData(STORAGE_KEYS.GAME_MODE, gameMode);
-}
-
-function loadGameMode() {
-    gameMode = loadData(STORAGE_KEYS.GAME_MODE, 4);
-}
+function saveGameMode() { saveData(STORAGE_KEYS.GAME_MODE, gameMode); }
+function loadGameMode() { gameMode = loadData(STORAGE_KEYS.GAME_MODE, 4); }
 
 function saveGameState() {
     saveData(STORAGE_KEYS.SCORE_NOS, scoreNos);
@@ -76,20 +70,18 @@ function saveGameState() {
     saveData(STORAGE_KEYS.MATCHES_NOS, matchesWonNos);
     saveData(STORAGE_KEYS.MATCHES_ELES, matchesWonEles);
     saveData(STORAGE_KEYS.PLAYER_NAMES, playerNames);
-    saveData(STORAGE_KEYS.DEALER_INDEX, currentDealerIndex); // Salva dealer para ambos os modos
-    if (gameMode === 4) { // Salva nomes de equipe apenas no modo 4
+    saveData(STORAGE_KEYS.DEALER_INDEX, currentDealerIndex);
+    if (gameMode === 4) {
         saveData(STORAGE_KEYS.TEAM_NAME_NOS, teamNameNos);
         saveData(STORAGE_KEYS.TEAM_NAME_ELES, teamNameEles);
     }
     saveData(STORAGE_KEYS.DURATION_HISTORY, matchDurationHistory);
 }
-
 function loadGameSettings() {
     currentTheme = loadData(STORAGE_KEYS.THEME, 'dark');
     isSoundOn = loadData(STORAGE_KEYS.SOUND_ON, true);
     loadGameMode();
 }
-
 function loadGameData() {
     scoreNos = loadData(STORAGE_KEYS.SCORE_NOS, 0);
     scoreEles = loadData(STORAGE_KEYS.SCORE_ELES, 0);
@@ -99,18 +91,13 @@ function loadGameData() {
     matchesWonNos = loadData(STORAGE_KEYS.MATCHES_NOS, 0);
     matchesWonEles = loadData(STORAGE_KEYS.MATCHES_ELES, 0);
     playerNames = loadData(STORAGE_KEYS.PLAYER_NAMES, []);
-    currentDealerIndex = loadData(STORAGE_KEYS.DEALER_INDEX, 0); // Carrega dealer para ambos os modos
-
+    currentDealerIndex = loadData(STORAGE_KEYS.DEALER_INDEX, 0);
     if (gameMode === 4) {
         teamNameNos = loadData(STORAGE_KEYS.TEAM_NAME_NOS, "Nós");
         teamNameEles = loadData(STORAGE_KEYS.TEAM_NAME_ELES, "Eles");
-    } else {
-        // No modo 2, teamNameNos e teamNameEles não são usados para títulos de seção de placar.
-        // Os nomes dos jogadores são usados diretamente.
     }
     matchDurationHistory = loadData(STORAGE_KEYS.DURATION_HISTORY, []);
 }
-
 function clearSavedGameData() {
     const keysToClear = Object.values(STORAGE_KEYS).filter(key =>
         key !== STORAGE_KEYS.THEME && key !== STORAGE_KEYS.SOUND_ON && key !== STORAGE_KEYS.GAME_MODE
@@ -120,10 +107,10 @@ function clearSavedGameData() {
 
 // --- Funções de UI ---
 function updateMainTitle() {
-    if (mainTitleElement) mainTitleElement.textContent = "Marcador Truco Acker Pro";
+    if (mainTitleElement) mainTitleElement.textContent = "Marcador Truco Acker"; // NOME ALTERADO
 }
 function updateFooterCredit() {
-    if (footerCreditElement) footerCreditElement.textContent = "Desenvolvido por Jacson A Duarte";
+    if (footerTextElement) footerTextElement.textContent = "Desenvolvido por Jacson A Duarte"; // TEXTO ALTERADO
 }
 function updateCurrentGameDisplay() {
     if (scoreNosElement) scoreNosElement.textContent = scoreNos;
@@ -135,51 +122,41 @@ function updateMatchWinsDisplay() {
     if (matchWinsNosElement) matchWinsNosElement.textContent = matchesWonNos;
     if (matchWinsElesElement) matchWinsElesElement.textContent = matchesWonEles;
 }
-
 function updateDealerDisplay() {
     if (!dealerNameElement) return;
     const numExpectedPlayers = gameMode;
-    if (playerNames.length === numExpectedPlayers && playerNames[currentDealerIndex]) {
+    if (playerNames.length === numExpectedPlayers && playerNames[currentDealerIndex] && playerNames[currentDealerIndex].trim() !== "") {
         dealerNameElement.textContent = playerNames[currentDealerIndex];
     } else {
         dealerNameElement.textContent = `-- Defina os ${numExpectedPlayers} Jogadores --`;
     }
 }
-
 function updateScoreSectionTitles() {
     if (gameMode === 4) {
         if (teamNameNosElement) teamNameNosElement.textContent = teamNameNos;
         if (teamNameElesElement) teamNameElesElement.textContent = teamNameEles;
-    } else { // Modo 2 jogadores
+    } else {
         if (teamNameNosElement) teamNameNosElement.textContent = playerNames[0] || "Jogador 1";
         if (teamNameElesElement) teamNameElesElement.textContent = playerNames[1] || "Jogador 2";
     }
     updateDurationHistoryDisplay();
 }
-
 function updateUIBasedOnMode() {
     if (!dealerSectionElement || !editTeamsButton || !changeGameModeButton || !editPlayersButton || !nextDealerButtonElement) return;
-
-    // Seção do Embaralhador e botão Próximo Embaralhador ficam sempre visíveis
     dealerSectionElement.classList.remove('hidden');
     nextDealerButtonElement.classList.remove('hidden');
-    // Opcional: Alterar o texto do título da seção do embaralhador se desejar
-    // if(dealerSectionElement.querySelector('h3')) dealerSectionElement.querySelector('h3').textContent = gameMode === 4 ? "Embaralhador Atual:" : "Quem Embaralha:";
-
-
     if (gameMode === 4) {
         editTeamsButton.classList.remove('hidden');
         editPlayersButton.textContent = "Editar Nomes dos Jogadores (4)";
         changeGameModeButton.textContent = "Mudar para Modo 2 Jogadores";
-    } else { // gameMode === 2
-        editTeamsButton.classList.add('hidden'); // Oculta apenas no modo 2 jogadores
+    } else {
+        editTeamsButton.classList.add('hidden');
         editPlayersButton.textContent = "Editar Nomes dos Jogadores (2)";
         changeGameModeButton.textContent = "Mudar para Modo 4 Jogadores";
     }
     updateScoreSectionTitles();
     updateDealerDisplay();
 }
-
 function updateDurationHistoryDisplay() {
     if (!durationHistoryListElement) return;
     durationHistoryListElement.innerHTML = '';
@@ -192,17 +169,15 @@ function updateDurationHistoryDisplay() {
         const formattedTime = formatTime(entry.duration);
         const listItem = document.createElement('li');
         let winnerDisplayName;
-        // Usa nomes de equipe/jogador corretos com base no modo da partida registrada
+        const entryPlayerNames = entry.playerNames || []; // Nomes da partida, se salvos
+
         if (entry.mode === 4) {
-            winnerDisplayName = entry.winner === 'nos' ? teamNameNos : teamNameEles;
-        } else { // entry.mode === 2
-            // Para partidas antigas de 2 jogadores, precisamos ter certeza que playerNames está carregado corretamente
-            // ou ter uma forma de buscar os nomes daquele momento. Por simplicidade, usamos os atuais se disponíveis.
-            const p1Name = (entry.playerNames && entry.playerNames[0]) ? entry.playerNames[0] : (playerNames[0] || "Jogador 1");
-            const p2Name = (entry.playerNames && entry.playerNames[1]) ? entry.playerNames[1] : (playerNames[1] || "Jogador 2");
-            winnerDisplayName = entry.winner === 'nos' ? p1Name : p2Name;
+            winnerDisplayName = entry.winner === 'nos' ? (entry.teamNameNos || teamNameNos) : (entry.teamNameEles || teamNameEles);
+        } else {
+            winnerDisplayName = entry.winner === 'nos' ? (entryPlayerNames[0] || "Jogador 1") : (entryPlayerNames[1] || "Jogador 2");
         }
-        listItem.textContent = `Partida ${i + 1} (${winnerDisplayName} - ${entry.mode}P): ${formattedTime} `;
+        // REMOVIDO O "- XP" DA EXIBIÇÃO
+        listItem.textContent = `Partida ${i + 1} (${winnerDisplayName}): ${formattedTime} `;
         const winnerIcon = document.createElement('span');
         winnerIcon.classList.add('winner-icon', entry.winner);
         winnerIcon.textContent = 'V';
@@ -210,7 +185,6 @@ function updateDurationHistoryDisplay() {
         durationHistoryListElement.appendChild(listItem);
     }
 }
-
 function updateSoundButtonIcon() {
     if (soundToggleButton) soundToggleButton.textContent = isSoundOn ? '🔊' : '🔇';
 }
@@ -218,8 +192,7 @@ function updateSoundButtonIcon() {
 // --- Síntese de Voz ---
 function speakText(text, cancelPrevious = true, callback = null) {
     if (!isSoundOn || !('speechSynthesis' in window)) {
-        if (callback) callback();
-        return;
+        if (callback) callback(); return;
     }
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'pt-BR'; utterance.rate = 1.0; utterance.pitch = 1.0;
@@ -275,51 +248,38 @@ function getPlayerNames(isModeChangeOrInitialSetup = false) {
 
     for (let i = 0; i < numPlayersToDefine; i++) {
         let defaultNameSuggestion = `Jogador ${i + 1}`;
-        // Se está editando e já existe um nome válido, sugere ele.
-        // Se é mudança de modo ou setup inicial e oldPlayerNames tem algo (de um modo anterior), não usa.
-        let currentNameForPrompt = (oldPlayerNames[i] && !isModeChangeOrInitialSetup && oldPlayerNames[i] !== defaultNameSuggestion && oldPlayerNames.length === numPlayersToDefine) ? oldPlayerNames[i] : defaultNameSuggestion;
-
+        let currentNameForPrompt = (oldPlayerNames[i] && !isModeChangeOrInitialSetup && oldPlayerNames.length === numPlayersToDefine) ? oldPlayerNames[i] : defaultNameSuggestion;
         let playerName = prompt(`Nome do Jogador ${i + 1}:`, currentNameForPrompt);
 
-        if (playerName === null) {
-            if (isModeChangeOrInitialSetup || oldPlayerNames.length !== numPlayersToDefine) { // Se cancelou durante setup de novo modo ou se o array antigo não bate com o modo atual
+        if (playerName === null) { // Usuário clicou em "Cancelar" no prompt
+            if (isModeChangeOrInitialSetup || oldPlayerNames.length !== numPlayersToDefine || !oldPlayerNames.every(name => name && name.trim() !== "")) {
+                // Se é setup inicial/mudança de modo OU se os nomes antigos não são válidos para o modo atual, usa padrão.
                 playerNames = Array(numPlayersToDefine).fill(null).map((_, j) => `Jogador ${j + 1}`);
-                alert("Configuração cancelada. Usando nomes padrão.");
-            } else { // Cancelou edição, mantém nomes antigos
+                alert("Configuração cancelada/inválida. Usando nomes padrão.");
+            } else { // Cancelou edição, mas nomes antigos eram válidos, então mantém.
                 playerNames = oldPlayerNames;
-                alert("Edição cancelada.");
+                alert("Edição cancelada. Nomes anteriores mantidos.");
             }
             updateScoreSectionTitles(); updateDealerDisplay(); return;
         }
-        while (!playerName.trim()) {
-            alert("Nome inválido.");
-            playerName = prompt(`Nome do Jogador ${i + 1}:`, defaultNameSuggestion); // Volta para sugestão genérica
-            if (playerName === null) {
-                 if (isModeChangeOrInitialSetup || oldPlayerNames.length !== numPlayersToDefine) {
-                    playerNames = Array(numPlayersToDefine).fill(null).map((_, j) => `Jogador ${j + 1}`);
-                    alert("Configuração cancelada. Usando nomes padrão.");
-                } else {
-                    playerNames = oldPlayerNames;
-                    alert("Edição cancelada.");
-                }
-                updateScoreSectionTitles(); updateDealerDisplay(); return;
-            }
-        }
-        newPlayerNames.push(playerName.trim());
+
+        // Se o usuário pressionou OK sem alterar (ou limpou e pressionou OK), playerName será o default ou ""
+        // Se playerName.trim() for vazio, significa que o usuário limpou o campo ou inseriu apenas espaços.
+        // Nesse caso, usamos o defaultNameSuggestion. Caso contrário, usamos o que ele digitou (ou deixou).
+        newPlayerNames.push(playerName.trim() === "" ? defaultNameSuggestion : playerName.trim());
     }
     playerNames = newPlayerNames;
     updateScoreSectionTitles();
 
-    if (isModeChangeOrInitialSetup) { // Sempre reseta dealer no setup de modo/inicial
-        currentDealerIndex = 0;
-    }
+    if (isModeChangeOrInitialSetup) currentDealerIndex = 0;
     saveData(STORAGE_KEYS.PLAYER_NAMES, playerNames);
-    saveData(STORAGE_KEYS.DEALER_INDEX, currentDealerIndex); // Salva dealer para ambos os modos
-
+    saveData(STORAGE_KEYS.DEALER_INDEX, currentDealerIndex);
     updateDealerDisplay();
-    speakText(isModeChangeOrInitialSetup ? `Modo de ${gameMode} jogadores configurado. ${playerNames[currentDealerIndex] || `Jogador ${currentDealerIndex+1}`} embaralha.` : "Nomes dos jogadores atualizados.");
+    speakText(isModeChangeOrInitialSetup ? `Modo de ${gameMode} jogadores configurado. ${playerNames[currentDealerIndex] || `Jogador ${currentDealerIndex + 1}`} embaralha.` : "Nomes dos jogadores atualizados.");
 
-    if (isModeChangeOrInitialSetup && !gameStartTime && playerNames.length === numPlayersToDefine && playerNames.every(name => !name.startsWith("Jogador "))) {
+    // Inicia o timer se for setup inicial/mudança de modo, o timer não estiver rodando,
+    // e os nomes foram definidos (não são mais os "Jogador X" genéricos se o usuário os editou)
+    if (isModeChangeOrInitialSetup && !gameStartTime && playerNames.length === numPlayersToDefine) {
         startTimer();
     }
 }
@@ -339,12 +299,12 @@ function editTeamNames() {
 // --- Lógica do Embaralhador ---
 function advanceDealer(speakAnnounce = false, callback = null) {
     const numExpectedPlayers = gameMode;
-    if (playerNames.length !== numExpectedPlayers || playerNames.some(name => name.startsWith("Jogador "))) {
+    // Permite avançar mesmo com nomes padrão "Jogador X"
+    if (playerNames.length !== numExpectedPlayers) {
         if (speakAnnounce) alert(`Defina os ${numExpectedPlayers} nomes dos jogadores primeiro.`);
-        if (callback) callback();
-        return false;
+        if (callback) callback(); return false;
     }
-    currentDealerIndex = (currentDealerIndex + 1) % numExpectedPlayers; // Modulo 2 ou 4
+    currentDealerIndex = (currentDealerIndex + 1) % numExpectedPlayers;
     saveData(STORAGE_KEYS.DEALER_INDEX, currentDealerIndex);
     updateDealerDisplay();
     if (speakAnnounce && playerNames[currentDealerIndex]) {
@@ -358,10 +318,11 @@ function advanceDealer(speakAnnounce = false, callback = null) {
 // --- Lógica Principal de Pontuação ---
 function changeScore(team, amount, speakPointText = null) {
     const numExpectedPlayers = gameMode;
-    if (playerNames.length !== numExpectedPlayers || playerNames.some(name => name.startsWith("Jogador "))) {
+    // REMOVIDA A VALIDAÇÃO playerNames.some(name => name.startsWith("Jogador "))
+    // para permitir jogar com nomes padrão.
+    if (playerNames.length !== numExpectedPlayers) {
         alert(`Por favor, defina os nomes dos ${numExpectedPlayers} jogadores antes de pontuar.`);
-        getPlayerNames(true);
-        return false;
+        getPlayerNames(true); return false;
     }
 
     if (isInitialState && amount > 0 && !gameStartTime) startTimer();
@@ -375,8 +336,7 @@ function changeScore(team, amount, speakPointText = null) {
     undoState = {
         sN: scoreNos, sE: scoreEles, psN: prevScoreNos, psE: prevScoreEles,
         dI: currentDealerIndex, isI: isInitialState,
-        gST: gameStartTime ? Date.now() - gameStartTime : null,
-        mde: gameMode
+        gST: gameStartTime ? Date.now() - gameStartTime : null, mde: gameMode
     };
     if (undoButton) undoButton.disabled = false;
 
@@ -394,27 +354,24 @@ function changeScore(team, amount, speakPointText = null) {
 
     const afterPointSpeechAction = () => {
         const finalAction = () => { if (winner) processMatchEnd(winner); else saveGameState(); };
-
-        if (amount > 0) { // Avança dealer apenas se adicionou pontos
-            advanceDealer(false, () => { // Callback do advanceDealer
+        if (amount > 0) {
+            advanceDealer(false, () => {
                 if (playerNames.length === gameMode && playerNames[currentDealerIndex]) {
                     speakText(`Embaralhador: ${playerNames[currentDealerIndex]}`, false, finalAction);
-                } else {
-                    finalAction();
-                }
+                } else { finalAction(); }
             });
-        } else {
-             finalAction();
-        }
+        } else { finalAction(); }
     };
 
     if (speakPointText && amount !== 0) {
         let fullSpeakText = speakPointText;
-        if (gameMode === 4) { // Adiciona "para Nós/Eles" apenas no modo 4
-            fullSpeakText += (team === 'nos' ? ` para ${teamNameNos}` : ` para ${teamNameEles}`);
-        } else { // Modo 2 jogadores, "para [Nome do Jogador]"
-            fullSpeakText += (team === 'nos' ? ` para ${playerNames[0]}` : ` para ${playerNames[1]}`);
+        let targetName;
+        if (team === 'nos') {
+            targetName = gameMode === 4 ? teamNameNos : playerNames[0];
+        } else {
+            targetName = gameMode === 4 ? teamNameEles : playerNames[1];
         }
+        fullSpeakText += ` para ${targetName}`;
         speakText(fullSpeakText, true, afterPointSpeechAction);
     } else {
         afterPointSpeechAction();
@@ -432,9 +389,7 @@ function undoLastAction() {
         }
         scoreNos = undoState.sN; scoreEles = undoState.sE;
         prevScoreNos = undoState.psN; prevScoreEles = undoState.psE;
-        isInitialState = undoState.isI;
-        currentDealerIndex = undoState.dI; // Restaura dealer para o modo que estava
-
+        isInitialState = undoState.isI; currentDealerIndex = undoState.dI;
         if (undoState.gST !== null && !gameStartTime) {
             gameStartTime = Date.now() - undoState.gST; startTimer();
         } else if (undoState.gST === null && gameStartTime) {
@@ -452,29 +407,35 @@ function undoLastAction() {
 function processMatchEnd(winnerTeam) {
     const durationMs = stopTimer();
     if (durationMs !== null) {
-        matchDurationHistory.push({ duration: durationMs, winner: winnerTeam, mode: gameMode, playerNames: [...playerNames] }); // Salva nomes da partida
+        matchDurationHistory.push({
+            duration: durationMs,
+            winner: winnerTeam,
+            mode: gameMode,
+            playerNames: [...playerNames], // Salva cópia dos nomes da partida
+            teamNameNos: gameMode === 4 ? teamNameNos : null, // Salva nomes das equipes se modo 4
+            teamNameEles: gameMode === 4 ? teamNameEles : null
+        });
         saveData(STORAGE_KEYS.DURATION_HISTORY, matchDurationHistory);
         updateDurationHistoryDisplay();
     }
     undoState = null; if (undoButton) undoButton.disabled = true;
     updateCurrentGameDisplay();
 
-    let winnerNameDisplay;
-    let winningTerm = "ganhou"; // Padrão para singular (modo 2P)
+    let winnerNameDisplay, winningTerm = "ganhou";
     if (gameMode === 4) {
         winnerNameDisplay = winnerTeam === 'nos' ? teamNameNos : teamNameEles;
-        winningTerm = winnerTeam === 'nos' ? "ganhou" : "ganharam"; // Ajusta para Nós/Eles
+        // winningTerm já é "ganhou" ou "ganharam" dependendo do pronome da equipe, mas para simplificar:
+        // Se quiser diferenciar "Nós ganhamos" de "Eles ganharam"
+        // winningTerm = winnerTeam === 'nos' ? "ganhamos" : "ganharam";
     } else {
         winnerNameDisplay = winnerTeam === 'nos' ? (playerNames[0] || "Jogador 1") : (playerNames[1] || "Jogador 2");
     }
 
     const speechCallback = () => {
         let alertMsg = `${winnerNameDisplay} venceu a partida!\n\nDuração: ${formatTime(durationMs)}\nPlacar de Partidas:\n`;
-        if (gameMode === 4) {
-            alertMsg += `${teamNameNos}: ${matchesWonNos}\n${teamNameEles}: ${matchesWonEles}`;
-        } else {
-            alertMsg += `${playerNames[0] || "J1"}: ${matchesWonNos}\n${playerNames[1] || "J2"}: ${matchesWonEles}`;
-        }
+        const p1Display = gameMode === 4 ? teamNameNos : (playerNames[0] || "J1");
+        const p2Display = gameMode === 4 ? teamNameEles : (playerNames[1] || "J2");
+        alertMsg += `${p1Display}: ${matchesWonNos}\n${p2Display}: ${matchesWonEles}`;
         alert(alertMsg);
         updateMatchWinsDisplay();
         prepareNextGame();
@@ -496,12 +457,12 @@ function prepareNextGame(isModeChange = false) {
 
     if (isModeChange) {
         matchesWonNos = 0; matchesWonEles = 0; updateMatchWinsDisplay();
-        playerNames = []; // Limpa para redefinição
+        playerNames = [];
         if (gameMode === 4) { teamNameNos = "Nós"; teamNameEles = "Eles"; }
-        getPlayerNames(true); // true para setup de modo
+        getPlayerNames(true);
     }
     saveGameState();
-    if (!isModeChange && playerNames.length === gameMode && playerNames.every(name => !name.startsWith("Jogador "))) {
+    if (!isModeChange && playerNames.length === gameMode) { // Não verifica mais se começa com "Jogador"
         setTimeout(startTimer, 150);
     }
 }
@@ -514,7 +475,6 @@ function resetCurrentGame(isModeChange = false) {
         if (!isModeChange) speakText("Jogo atual reiniciado.");
     }
 }
-
 function resetAllScores() {
     if (confirm("!!! ATENÇÃO !!!\n\nZerar TODO o placar?")) {
         clearSavedGameData();
@@ -524,7 +484,7 @@ function resetAllScores() {
         undoState = null; if (undoButton) undoButton.disabled = true;
         updateMatchWinsDisplay(); updateScoreSectionTitles(); updateDealerDisplay();
         updateDurationHistoryDisplay();
-        prepareNextGame(true); // Força redefinição de nomes para o modo atual
+        prepareNextGame(true);
         speakText("Placar geral zerado. Configure os nomes.");
     }
 }
@@ -554,34 +514,47 @@ function toggleGameMode() {
 
 function exportHistoryToWhatsApp() {
     const numExpectedPlayers = gameMode;
-    if (playerNames.length !== numExpectedPlayers || playerNames.some(name => name.startsWith("Jogador "))) {
-        alert(`Defina os nomes dos ${numExpectedPlayers} jogadores e jogue algumas partidas antes de exportar.`); return;
+    // Permite exportar mesmo com nomes padrão "Jogador X"
+    if (playerNames.length !== numExpectedPlayers) {
+        alert(`Defina os nomes dos ${numExpectedPlayers} jogadores antes de exportar.`); return;
     }
-    let historyText = `*Histórico - Marcador Truco Acker Pro (${gameMode} Jogadores)*\n\n`;
+    let historyText = `*Histórico - Marcador Truco Acker (${gameMode} Jogadores)*\n\n`;
+    const currentP1Name = playerNames[0] || "Jogador 1";
+    const currentP2Name = playerNames[1] || "Jogador 2";
+    const currentP3Name = playerNames[2] || "Jogador 3";
+    const currentP4Name = playerNames[3] || "Jogador 4";
+
     if (gameMode === 4) {
         historyText += `*Equipes:*\n${teamNameNos} vs ${teamNameEles}\n`;
-        historyText += `*Jogadores ${teamNameNos}:* ${playerNames[0]}, ${playerNames[2]}\n`;
-        historyText += `*Jogadores ${teamNameEles}:* ${playerNames[1]}, ${playerNames[3]}\n\n`;
+        historyText += `*Jogadores ${teamNameNos}:* ${currentP1Name}, ${currentP3Name}\n`;
+        historyText += `*Jogadores ${teamNameEles}:* ${currentP2Name}, ${currentP4Name}\n\n`;
     } else {
-        historyText += `*Jogadores:*\n${playerNames[0]} vs ${playerNames[1]}\n\n`;
+        historyText += `*Jogadores:*\n${currentP1Name} vs ${currentP2Name}\n\n`;
     }
-    const scoreTeam1Name = gameMode === 4 ? teamNameNos : (playerNames[0] || "J1");
-    const scoreTeam2Name = gameMode === 4 ? teamNameEles : (playerNames[1] || "J2");
+    const scoreTeam1Name = gameMode === 4 ? teamNameNos : currentP1Name;
+    const scoreTeam2Name = gameMode === 4 ? teamNameEles : currentP2Name;
     historyText += `*Placar Atual:*\n${scoreTeam1Name}: ${scoreNos}\n${scoreTeam2Name}: ${scoreEles}\n\n`;
-    historyText += `*Partidas Ganhas:*\n${scoreTeam1Name}: ${matchesWonNos}\n${scoreTeam2Name}: ${matchesWonEles}\n\n`;
+    historyText += `*Partidas Ganhas (Sessão):*\n${scoreTeam1Name}: ${matchesWonNos}\n${scoreTeam2Name}: ${matchesWonEles}\n\n`;
 
-    if (matchDurationHistory.length > 0) {
-        historyText += "*Histórico de Duração das Partidas:*\n";
-        matchDurationHistory.forEach((entry, index) => {
+    // Filtra histórico de duração para o modo de jogo ATUAL
+    const filteredDurationHistory = matchDurationHistory.filter(entry => entry.mode === gameMode);
+
+    if (filteredDurationHistory.length > 0) {
+        historyText += `*Histórico de Duração (Modo ${gameMode}P):*\n`;
+        filteredDurationHistory.forEach((entry, index) => {
             let winnerDisplayNameExport;
+            const entryPNames = entry.playerNames || [];
+            const entryTNameNos = entry.teamNameNos;
+            const entryTNameEles = entry.teamNameEles;
+
             if (entry.mode === 4) {
-                winnerDisplayNameExport = entry.winner === 'nos' ? (entry.playerNames && entry.playerNames.length === 4 ? teamNameNos : "Equipe 1") : (entry.playerNames && entry.playerNames.length === 4 ? teamNameEles : "Equipe 2");
-            } else {
-                winnerDisplayNameExport = entry.winner === 'nos' ? (entry.playerNames && entry.playerNames[0] ? entry.playerNames[0] : "Jogador 1") : (entry.playerNames && entry.playerNames[1] ? entry.playerNames[1] : "Jogador 2");
+                winnerDisplayNameExport = entry.winner === 'nos' ? (entryTNameNos || "Equipe 1") : (entryTNameEles || "Equipe 2");
+            } else { // entry.mode === 2
+                winnerDisplayNameExport = entry.winner === 'nos' ? (entryPNames[0] || "Jogador 1") : (entryPNames[1] || "Jogador 2");
             }
-            historyText += `Partida ${index + 1} (${winnerDisplayNameExport} - ${entry.mode}P): ${formatTime(entry.duration)}\n`;
+            historyText += `Partida ${index + 1} (${winnerDisplayNameExport}): ${formatTime(entry.duration)}\n`;
         });
-    } else { historyText += "Nenhuma partida concluída para exibir no histórico de durações.\n"; }
+    } else { historyText += `Nenhuma partida concluída neste modo (${gameMode}P) para exibir no histórico de durações.\n`; }
     historyText += `\nEmbaralhador Atual: ${dealerNameElement.textContent}`;
 
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(historyText)}`, '_blank');
@@ -608,7 +581,7 @@ function addEventListeners() {
 
 // --- Inicialização ---
 function initializeApp() {
-    mainTitleElement = document.querySelector('h1');
+    mainTitleElement = document.getElementById('main-title'); // Usando ID
     scoreNosElement = document.getElementById('score-nos');
     scoreElesElement = document.getElementById('score-eles');
     prevScoreNosElement = document.getElementById('prev-score-nos');
@@ -629,7 +602,7 @@ function initializeApp() {
     editTeamsButton = document.getElementById('edit-teams-btn');
     changeGameModeButton = document.getElementById('change-game-mode-btn');
     exportHistoryButton = document.getElementById('export-history-btn');
-    footerCreditElement = document.querySelector('.footer-credit p');
+    footerTextElement = document.getElementById('footer-text'); // Usando ID
     dealerSectionElement = document.querySelector('.dealer-section');
     nextDealerButtonElement = document.getElementById('next-dealer-btn');
 
@@ -643,7 +616,7 @@ function initializeApp() {
     addEventListeners();
 
     const numExpectedPlayers = gameMode;
-    if (playerNames.length !== numExpectedPlayers || playerNames.some(name => name.startsWith("Jogador "))) {
+    if (playerNames.length !== numExpectedPlayers || !playerNames.every(name => name && name.trim() !== "")) { // Verifica se todos os nomes estão preenchidos
         setTimeout(() => getPlayerNames(true), 300);
     } else {
         resetCurrentTimerDisplay();
