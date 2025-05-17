@@ -172,14 +172,14 @@ body {
     border: 1px solid var(--border-color); position: relative;
     transition: background-color 0.3s ease, border-color 0.3s ease;
 }
-h1 { /* Título Principal: Marcador Truco Acker */
+h1 {
     color: var(--title-color);
     margin-top: 5px;
     margin-bottom: 20px;
     font-size: 1.8em;
     font-weight: 600;
     text-shadow: 0 1px 2px var(--shadow-color-darkest);
-    position: relative; /* Mantido para caso precise de z-index no futuro, mas padding-top removido */
+    position: relative;
 }
 h2, h3, h4 { color: var(--text-color-light); font-weight: 500; }
 hr { border: none; border-top: 1px solid var(--border-color); margin: 25px 0; }
@@ -188,24 +188,25 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 25px 0; }
 
 /* --- Seção Cronômetro --- */
 .timer-section {
-    padding: 8px 12px; /* Padding interno original */
-    padding-right: 50px; /* NOVO: Espaço à direita para os botões de config */
+    padding: 8px 12px;
+    padding-right: 48px; /* Espaço para os botões de configuração à direita */
     margin-bottom: 15px;
     background-color: var(--section-bg);
     border: 1px solid var(--border-color-light);
     border-radius: 8px;
-    text-align: center; /* Conteúdo do timer (h3, p) centralizado */
-    position: relative; /* Para posicionar os botões de config dentro dele */
-    min-height: 70px;
+    text-align: center;
+    position: relative; /* Essencial para posicionar .top-config-buttons */
+    min-height: 65px;
     display: flex;
     flex-direction: column;
     justify-content: center;
 }
-.timer-section h3 { margin: 2px 0 4px 0; font-size: 0.85em; color: var(--text-color-lighter); font-weight: 400; }
+.timer-section h3 { margin: 0 0 2px 0; font-size: 0.8em; color: var(--text-color-lighter); font-weight: 400; }
 #current-timer-display {
-    font-size: 1.6em; font-weight: 700; color: var(--text-color);
+    font-size: 1.5em;
+    font-weight: 700; color: var(--text-color);
     font-family: 'SF Mono', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
-    display:block; margin: 0; padding: 2px 0;
+    display:block; margin: 0; padding: 1px 0;
 }
 
 /* --- Botões de Configuração (DENTRO DO TIMER SECTION) --- */
@@ -213,11 +214,11 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 25px 0; }
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    right: 8px; /* Ajustado para dentro da seção do timer */
+    right: 8px;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 6px;
+    gap: 5px;
     z-index: 10;
 }
 #theme-toggle-btn, #sound-toggle-btn {
@@ -225,19 +226,18 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 25px 0; }
     color: var(--button-text);
     border: 1px solid var(--button-border);
     border-radius: 50%;
-    width: 30px; /* Reduzido para caber melhor */
-    height: 30px;
-    font-size: 1em; /* Reduzido */
+    width: 28px;
+    height: 28px;
+    font-size: 0.9em;
     cursor: pointer;
     display: flex; justify-content: center; align-items: center; padding: 0;
     transition: background-color 0.2s, color 0.2s, transform 0.15s;
     box-shadow: 0 1px 2px var(--shadow-color);
 }
 #theme-toggle-btn:hover, #sound-toggle-btn:hover { background-color: var(--button-hover-bg); }
-/* Ajuste no transform active para manter o translateY se já aplicado */
 #theme-toggle-btn:active, #sound-toggle-btn:active {
-    transform: translateY(-50%) scale(0.92); /* Se o translateY(-50%) for mantido */
-    /* Ou apenas scale se o translateY não for mais necessário para o alinhamento */
+    transform: translateY(-50%) scale(0.92); /* Mantém o translateY se estiver usando para centralizar */
+    /* Se o translateY(-50%) for apenas no container .top-config-buttons, então só scale aqui: */
     /* transform: scale(0.92); */
 }
 
@@ -304,7 +304,7 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 25px 0; }
 .controls button {
     border-radius: 6px; padding: 10px 8px; font-size: 1.1em; font-weight: 500;
     cursor: pointer; min-width: 40px;
-    transition: background-color .15s, transform .1s, box-shadow .15s, opacity .15s; /* Adicionado opacity a transição */
+    transition: background-color .15s, transform .1s, box-shadow .15s, opacity .15s;
     user-select: none; -webkit-user-select:none; -ms-user-select:none;
     border-style: solid; border-width: 1px; border-bottom-width: 3px;
     box-shadow: 0 2px 3px var(--shadow-color);
@@ -316,7 +316,7 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 25px 0; }
     border-bottom-color: var(--button-disabled-border) !important;
     box-shadow: none !important;
     cursor: not-allowed !important;
-    opacity: 0.5 !important; /* Opacidade um pouco menor para desabilitado */
+    opacity: 0.5 !important;
 }
 .controls button:active:not(:disabled) { transform: translateY(1px) scale(.97); border-bottom-width: 2px; box-shadow: 0 1px 2px var(--shadow-color-darkest); }
 .controls .add { color: var(--button-add-text); border-color: var(--button-add-border); background-color: var(--button-add-bg); border-bottom-color: var(--button-add-border-bottom); }
