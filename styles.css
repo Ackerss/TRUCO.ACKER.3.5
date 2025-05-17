@@ -174,45 +174,32 @@ body {
 }
 h1 { /* Título Principal: Marcador Truco Acker */
     color: var(--title-color);
-    margin-top: 5px; /* Reduzido para dar espaço aos botões acima se necessário, mas o principal é o top dos botões */
+    margin-top: 5px;
     margin-bottom: 20px;
     font-size: 1.8em;
     font-weight: 600;
     text-shadow: 0 1px 2px var(--shadow-color-darkest);
-    padding-top: 45px; /* Adiciona espaço no topo do H1 para os botões não sobreporem o texto */
-    position: relative; /* Para garantir que o padding-top funcione bem com botões absolutos */
+    position: relative; /* Mantido para caso precise de z-index no futuro, mas padding-top removido */
 }
 h2, h3, h4 { color: var(--text-color-light); font-weight: 500; }
 hr { border: none; border-top: 1px solid var(--border-color); margin: 25px 0; }
 
 .hidden { display: none !important; }
 
-/* --- Botões de Configuração no Topo --- */
-.top-config-buttons {
-    position: absolute;
-    top: 15px; /* AUMENTADO de 12px para 15px ou mais se necessário */
-    right: 15px; /* AUMENTADO de 12px para 15px ou mais se necessário */
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 8px;
-    z-index: 10; /* Garante que fiquem sobre outros elementos se houver sobreposição */
-}
-#theme-toggle-btn, #sound-toggle-btn {
-    background: var(--section-bg); color: var(--text-color-lighter);
-    border: 1px solid var(--border-color-light); border-radius: 50%;
-    width: 36px; height: 36px; font-size: 1.2em; cursor: pointer;
-    display: flex; justify-content: center; align-items: center; padding: 0;
-    transition: background-color 0.2s, color 0.2s, transform 0.15s;
-    box-shadow: 0 1px 3px var(--shadow-color);
-}
-#theme-toggle-btn:hover, #sound-toggle-btn:hover { background-color: var(--section-bg-alt); color: var(--text-color); }
-#theme-toggle-btn:active, #sound-toggle-btn:active { transform: scale(0.92); }
-
 /* --- Seção Cronômetro --- */
 .timer-section {
-    padding: 8px 12px; margin-bottom: 15px; background-color: var(--section-bg);
-    border: 1px solid var(--border-color-light); border-radius: 8px; text-align:center;
+    padding: 8px 12px; /* Padding interno original */
+    padding-right: 50px; /* NOVO: Espaço à direita para os botões de config */
+    margin-bottom: 15px;
+    background-color: var(--section-bg);
+    border: 1px solid var(--border-color-light);
+    border-radius: 8px;
+    text-align: center; /* Conteúdo do timer (h3, p) centralizado */
+    position: relative; /* Para posicionar os botões de config dentro dele */
+    min-height: 70px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 .timer-section h3 { margin: 2px 0 4px 0; font-size: 0.85em; color: var(--text-color-lighter); font-weight: 400; }
 #current-timer-display {
@@ -220,6 +207,40 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 25px 0; }
     font-family: 'SF Mono', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
     display:block; margin: 0; padding: 2px 0;
 }
+
+/* --- Botões de Configuração (DENTRO DO TIMER SECTION) --- */
+.top-config-buttons {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 8px; /* Ajustado para dentro da seção do timer */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    z-index: 10;
+}
+#theme-toggle-btn, #sound-toggle-btn {
+    background: var(--button-bg);
+    color: var(--button-text);
+    border: 1px solid var(--button-border);
+    border-radius: 50%;
+    width: 30px; /* Reduzido para caber melhor */
+    height: 30px;
+    font-size: 1em; /* Reduzido */
+    cursor: pointer;
+    display: flex; justify-content: center; align-items: center; padding: 0;
+    transition: background-color 0.2s, color 0.2s, transform 0.15s;
+    box-shadow: 0 1px 2px var(--shadow-color);
+}
+#theme-toggle-btn:hover, #sound-toggle-btn:hover { background-color: var(--button-hover-bg); }
+/* Ajuste no transform active para manter o translateY se já aplicado */
+#theme-toggle-btn:active, #sound-toggle-btn:active {
+    transform: translateY(-50%) scale(0.92); /* Se o translateY(-50%) for mantido */
+    /* Ou apenas scale se o translateY não for mais necessário para o alinhamento */
+    /* transform: scale(0.92); */
+}
+
 
 /* --- Seção Partidas Ganhas --- */
 .match-wins-section {
@@ -283,21 +304,31 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 25px 0; }
 .controls button {
     border-radius: 6px; padding: 10px 8px; font-size: 1.1em; font-weight: 500;
     cursor: pointer; min-width: 40px;
-    transition: background-color .15s, transform .1s, box-shadow .15s;
+    transition: background-color .15s, transform .1s, box-shadow .15s, opacity .15s; /* Adicionado opacity a transição */
     user-select: none; -webkit-user-select:none; -ms-user-select:none;
     border-style: solid; border-width: 1px; border-bottom-width: 3px;
     box-shadow: 0 2px 3px var(--shadow-color);
 }
-.controls button:active { transform: translateY(1px) scale(.97); border-bottom-width: 2px; box-shadow: 0 1px 2px var(--shadow-color-darker); }
+.controls button:disabled {
+    background-color: var(--button-disabled-bg) !important;
+    color: var(--button-disabled-text) !important;
+    border-color: var(--button-disabled-border) !important;
+    border-bottom-color: var(--button-disabled-border) !important;
+    box-shadow: none !important;
+    cursor: not-allowed !important;
+    opacity: 0.5 !important; /* Opacidade um pouco menor para desabilitado */
+}
+.controls button:active:not(:disabled) { transform: translateY(1px) scale(.97); border-bottom-width: 2px; box-shadow: 0 1px 2px var(--shadow-color-darkest); }
 .controls .add { color: var(--button-add-text); border-color: var(--button-add-border); background-color: var(--button-add-bg); border-bottom-color: var(--button-add-border-bottom); }
-.controls .add:hover { background-color: var(--button-add-hover); }
-.controls .add:active { background-color: var(--button-add-active); }
+.controls .add:hover:not(:disabled) { background-color: var(--button-add-hover); }
+.controls .add:active:not(:disabled) { background-color: var(--button-add-active); }
 .controls .remove { color: var(--button-remove-text); border-color: var(--button-remove-border); background-color: var(--button-remove-bg); border-bottom-color: var(--button-remove-border-bottom); }
-.controls .remove:hover { background-color: var(--button-remove-hover); }
-.controls .remove:active { background-color: var(--button-remove-active); }
+.controls .remove:hover:not(:disabled) { background-color: var(--button-remove-hover); }
+.controls .remove:active:not(:disabled) { background-color: var(--button-remove-active); }
 .controls .truco-btn { color: var(--button-truco-text); border-color: var(--button-truco-border); background-color: var(--button-truco-bg); border-bottom-color: var(--button-truco-border-bottom); }
-.controls .truco-btn:hover { background-color: var(--button-truco-hover); }
-.controls .truco-btn:active { background-color: var(--button-truco-active); }
+.controls .truco-btn:hover:not(:disabled) { background-color: var(--button-truco-hover); }
+.controls .truco-btn:active:not(:disabled) { background-color: var(--button-truco-active); }
+
 
 /* --- Botão Desfazer --- */
 .undo-section { text-align: center; margin-top: 20px; margin-bottom: 25px; }
@@ -309,8 +340,8 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 25px 0; }
     background-color: var(--button-undo-bg); color: var(--button-action-text);
     box-shadow: 0 2px 3px var(--shadow-color-darker);
 }
-#undo-button:hover { background-color: var(--button-undo-hover); }
-#undo-button:active { background-color: var(--button-undo-active); transform: translateY(1px); border-bottom-width: 2px; box-shadow: 0 1px 2px var(--shadow-color-darkest); }
+#undo-button:hover:not(:disabled) { background-color: var(--button-undo-hover); }
+#undo-button:active:not(:disabled) { background-color: var(--button-undo-active); transform: translateY(1px); border-bottom-width: 2px; box-shadow: 0 1px 2px var(--shadow-color-darkest); }
 #undo-button:disabled {
     background-color: var(--button-disabled-bg); color: var(--button-disabled-text);
     border: 1px solid var(--button-disabled-border); border-bottom: 1px solid var(--button-disabled-border);
