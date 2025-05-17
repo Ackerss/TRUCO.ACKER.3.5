@@ -39,12 +39,18 @@
     --button-truco-text: #91d5ff;
     --button-truco-border: #4a8ab3;
     --button-truco-border-bottom: #2a4a66;
-    --button-action-text: #1f1f1f;
-    --button-change-mode-bg: #868e96;
-    --button-change-mode-hover: #adb5bd;
-    --button-change-mode-active: #495057;
-    --button-change-mode-border: #495057;
-    --button-change-mode-border-bottom: #343a40;
+    --button-action-text: #1f1f1f; /* Para botões com fundo claro */
+    --button-action-text-light: #e0e0e0; /* Para botões com fundo escuro */
+    --button-change-mode-bg: #5a5a5a;
+    --button-change-mode-hover: #6a6a6a;
+    --button-change-mode-active: #4a4a4a;
+    --button-change-mode-border: #777;
+    --button-change-mode-border-bottom: #404040;
+    --button-export-bg: #367c36;
+    --button-export-hover: #409140;
+    --button-export-active: #2c6b2c;
+    --button-export-border: #4aab87;
+    --button-export-border-bottom: #2b5a4f;
     --button-edit-bg: #96f2d7;
     --button-edit-hover: #a3f5e0;
     --button-edit-active: #75e0c1;
@@ -119,11 +125,17 @@ body.light-theme {
     --button-truco-border: #b8daff;
     --button-truco-border-bottom: #93b9e6;
     --button-action-text: #212529;
-    --button-change-mode-bg: #f8f9fa;
-    --button-change-mode-hover: #e9ecef;
-    --button-change-mode-active: #dee2e6;
-    --button-change-mode-border: #dee2e6;
-    --button-change-mode-border-bottom: #ced4da;
+    --button-action-text-light: #ffffff;
+    --button-change-mode-bg: #e0e0e0;
+    --button-change-mode-hover: #d0d0d0;
+    --button-change-mode-active: #c0c0c0;
+    --button-change-mode-border: #c0c0c0;
+    --button-change-mode-border-bottom: #b0b0b0;
+    --button-export-bg: #c8e6c9;
+    --button-export-hover: #a5d6a7;
+    --button-export-active: #81c784;
+    --button-export-border: #a5d6a7;
+    --button-export-border-bottom: #81c784;
     --button-edit-bg: #a3f5e0;
     --button-edit-hover: #b7f7e6;
     --button-edit-active: #89e8d0;
@@ -170,7 +182,7 @@ body {
     padding: 15px;
     box-sizing: border-box;
     transition: background-color 0.3s ease, color 0.3s ease;
-    -webkit-tap-highlight-color: transparent; /* Remove destaque de toque em mobile */
+    -webkit-tap-highlight-color: transparent;
 }
 .scoreboard {
     background-color: var(--scoreboard-bg);
@@ -189,13 +201,13 @@ h1 {
     color: var(--title-color);
     margin-top: 0;
     margin-bottom: 20px;
-    font-size: 1.7em; /* Aumentado um pouco */
-    font-weight: 600; /* Um pouco mais leve que bold */
+    font-size: 1.7em;
+    font-weight: 600;
     text-shadow: 1px 1px 2px var(--shadow-color-darkest);
 }
 h2, h3, h4 {
     color: var(--text-color-light);
-    font-weight: 500; /* Normal para semibold */
+    font-weight: 500;
 }
 hr {
     border: none;
@@ -206,12 +218,12 @@ hr {
 /* --- Botões de Configuração no Topo --- */
 .top-config-buttons {
     position: absolute;
-    top: 12px; /* Ajustado */
-    right: 12px; /* Ajustado */
+    top: 12px;
+    right: 12px;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 8px; /* Aumentado */
+    gap: 8px;
 }
 #theme-toggle-btn,
 #sound-toggle-btn {
@@ -219,9 +231,9 @@ hr {
     color: var(--text-color-lighter);
     border: 1px solid var(--border-color-light);
     border-radius: 50%;
-    width: 36px; /* Aumentado */
-    height: 36px; /* Aumentado */
-    font-size: 1.2em; /* Aumentado */
+    width: 36px;
+    height: 36px;
+    font-size: 1.2em;
     cursor: pointer;
     display: flex;
     justify-content: center;
@@ -254,11 +266,11 @@ hr {
     z-index: 1000;
     padding: 15px;
     box-sizing: border-box;
-    opacity: 0; /* Começa invisível para animação */
-    visibility: hidden; /* Começa escondido */
+    opacity: 0;
+    visibility: hidden;
     transition: opacity 0.3s ease, visibility 0.3s ease;
 }
-.modal-overlay[style*="display: flex"] { /* Quando o JS muda para flex */
+.modal-overlay[style*="display: flex"] {
     opacity: 1;
     visibility: visible;
 }
@@ -271,7 +283,7 @@ hr {
     width: 100%;
     max-width: 400px;
     border: 1px solid var(--border-color);
-    transform: scale(0.95); /* Começa menor para animação */
+    transform: scale(0.95);
     transition: transform 0.3s ease;
 }
 .modal-overlay[style*="display: flex"] .modal-content {
@@ -302,18 +314,18 @@ hr {
     margin-top: 25px;
 }
 .modal-button {
-    border: 1px solid transparent; /* Borda inicial transparente */
+    border: 1px solid transparent;
     padding: 12px 20px;
-    border-radius: 8px; /* Mais arredondado */
+    border-radius: 8px;
     font-size: 1em;
-    font-weight: 600; /* Semibold */
+    font-weight: 600;
     cursor: pointer;
     transition: background-color 0.2s, transform 0.1s, border-color 0.2s;
     flex-grow: 1;
     box-shadow: 0 2px 4px var(--shadow-color);
 }
 .modal-button:hover {
-    transform: translateY(-2px); /* Efeito de levantar no hover */
+    transform: translateY(-2px);
 }
 .modal-button:active {
     transform: scale(0.97) translateY(0);
@@ -321,7 +333,7 @@ hr {
 }
 #select-2-players-btn {
     background-color: var(--accent-nos);
-    color: #ffffff; /* Texto branco para melhor contraste */
+    color: #ffffff;
     border-color: var(--accent-nos);
 }
 #select-2-players-btn:hover {
@@ -330,7 +342,7 @@ hr {
 }
 #select-4-players-btn {
     background-color: var(--accent-eles);
-    color: #ffffff; /* Texto branco */
+    color: #ffffff;
     border-color: var(--accent-eles);
 }
 #select-4-players-btn:hover {
@@ -340,44 +352,44 @@ hr {
 
 /* --- Cronômetro --- */
 .timer-section {
-    padding: 8px 12px; /* Ajustado */
+    padding: 8px 12px;
     margin-bottom: 15px;
     background-color: var(--section-bg);
     border:1px solid var(--border-color-light);
-    border-radius:8px; /* Aumentado */
+    border-radius:8px;
     text-align:center;
 }
 .timer-section h3 {
-    margin: 2px 0 4px 0; /* Ajustado */
-    font-size:.85em; /* Aumentado */
+    margin: 2px 0 4px 0;
+    font-size:.85em;
     color: var(--text-color-lighter);
 }
 #current-timer-display {
-    font-size:1.6em; /* Aumentado */
+    font-size:1.6em;
     font-weight:700;
     color: var(--text-color);
-    font-family:'SF Mono', 'Monaco', 'Consolas', 'Courier New', Courier, monospace; /* Fontes monoespaçadas modernas */
+    font-family:'SF Mono', 'Monaco', 'Consolas', 'Courier New', Courier, monospace;
     display:block;
     margin: 0;
     padding: 2px 0;
-    letter-spacing: 1px; /* Espaçamento entre caracteres */
+    letter-spacing: 1px;
 }
 
 /* --- Seção Partidas Ganhas --- */
 .match-wins-section {
     background-color: var(--section-bg-alt);
-    padding:12px 15px; /* Ajustado */
-    border-radius:8px; /* Aumentado */
+    padding:12px 15px;
+    border-radius:8px;
     margin-bottom:15px;
     border:1px solid var(--border-color-light)
 }
 .match-wins-section h2 {
     margin:0 0 8px 0;
-    font-size:1.15em; /* Aumentado */
+    font-size:1.15em;
     color: var(--text-color-light)
 }
 .match-wins-display {
-    font-size:1.5em; /* Aumentado */
+    font-size:1.5em;
     font-weight:700;
     color: var(--text-color)
 }
@@ -387,33 +399,34 @@ hr {
 
 /* --- Seção Embaralhador --- */
 .dealer-section {
-    padding: 10px 12px; /* Ajustado */
+    padding: 10px 12px;
     margin-bottom:15px;
     background-color: var(--section-bg);
     border:1px solid var(--border-color-light);
-    border-radius:8px; /* Aumentado */
+    border-radius:8px;
 }
 .dealer-section h3 {
-    margin: 2px 0 5px 0; /* Ajustado */
-    font-size:1.05em; /* Aumentado */
+    margin: 0 0 5px 0; /* Margem inferior para separar do nome */
+    font-size:1.05em;
     color: var(--text-color-lighter);
 }
 #current-dealer-name {
-    font-size:1.35em; /* Aumentado */
+    font-size:1.35em;
     font-weight:700;
     color: var(--text-color);
     min-height: 1.35em;
     line-height: 1.35em;
-    margin: 0 0 8px 0; /* Aumentado */
+    margin: 0 0 10px 0; /* Margem inferior para separar do botão */
+    display: block;
 }
 #next-dealer-btn {
-    margin-top: 5px;
-    padding:8px 16px; /* Ajustado */
-    font-size:.9em; /* Aumentado */
-    background-color: var(--button-bg); /* Alinhado com outros botões */
+    /* margin-top: 5px;  Removido, pois o #current-dealer-name já tem margem inferior */
+    padding:8px 16px;
+    font-size:.9em;
+    background-color: var(--button-bg);
     color: var(--button-text);
     border:1px solid var(--button-border);
-    border-bottom:3px solid var(--button-border); /* Efeito 3D sutil */
+    border-bottom:3px solid var(--button-border);
     border-radius:6px;
     cursor:pointer;
     transition:background-color .2s,transform .1s ease-out,box-shadow .1s ease-out;
@@ -422,8 +435,8 @@ hr {
 #next-dealer-btn:hover { background-color: var(--button-hover-bg); }
 #next-dealer-btn:active {
     background-color: var(--button-active-bg);
-    transform:translateY(1px); /* Menor deslocamento */
-    border-bottom-width:2px; /* Ajusta borda no clique */
+    transform:translateY(1px);
+    border-bottom-width:2px;
     box-shadow:0 1px 2px var(--shadow-color-darkest);
 }
 
@@ -432,7 +445,7 @@ hr {
     display:flex;
     justify-content:space-around;
     gap:15px;
-    margin-bottom:10px; /* Aumentado */
+    margin-bottom:10px;
     flex-wrap:wrap
 }
 .team {
@@ -442,26 +455,26 @@ hr {
     padding:15px;
     border:1px solid var(--border-color-light);
     background-color: var(--section-bg-hist);
-    border-radius:10px; /* Aumentado */
-    min-width:130px; /* Aumentado */
-    flex-basis:calc(50% - 10px); /* Ajuste para gap */
+    border-radius:10px;
+    min-width:130px;
+    flex-basis:calc(50% - 10px);
     flex-grow:1;
     box-sizing:border-box;
     margin-bottom:10px;
-    box-shadow: 0 2px 5px var(--shadow-color); /* Sombra sutil */
+    box-shadow: 0 2px 5px var(--shadow-color);
 }
 .team h2 {
     margin-top:0;
-    margin-bottom:12px; /* Aumentado */
+    margin-bottom:12px;
     color: var(--text-color-light);
-    font-size:1.25em; /* Aumentado */
+    font-size:1.25em;
     font-weight:600;
 }
 .score {
-    font-size:3.8em; /* Aumentado */
+    font-size:3.8em;
     font-weight:700;
-    margin-bottom:18px; /* Aumentado */
-    min-height:1.2em; /* Baseado no font-size */
+    margin-bottom:18px;
+    min-height:1.2em;
     line-height:1;
     text-shadow:1px 1px 3px var(--shadow-color-darker)
 }
@@ -478,19 +491,19 @@ hr {
 }
 .controls button {
     border: 1px solid var(--button-border);
-    border-radius: 6px; /* Aumentado */
-    padding: 9px 12px; /* Ajustado */
+    border-radius: 6px;
+    padding: 9px 12px;
     font-size: 1.1em;
     font-weight: 500;
     cursor: pointer;
-    min-width: 42px; /* Aumentado */
+    min-width: 42px;
     transition: background-color .2s, transform .1s, box-shadow .1s;
     user-select: none;
     -webkit-user-select:none;
     -ms-user-select:none;
     background-color: var(--button-bg);
     color: var(--button-text);
-    border-bottom: 2px solid var(--button-border); /* Efeito 3D sutil */
+    border-bottom: 2px solid var(--button-border);
     box-shadow: 0 1px 2px var(--shadow-color);
 }
 .controls button:hover {
@@ -504,7 +517,6 @@ hr {
     border-bottom-width: 1px;
     box-shadow: inset 0 1px 2px var(--shadow-color-darkest);
 }
-/* Cores específicas para botões de controle */
 .controls .add { color: var(--button-add-text); border-color: var(--button-add-border); background-color: var(--button-add-bg); border-bottom-color: var(--button-add-border-bottom); }
 .controls .add:hover { background-color: var(--button-add-hover); }
 .controls .add:active { background-color: var(--button-add-active); }
@@ -521,20 +533,20 @@ hr {
 /* --- Botão Desfazer --- */
 .undo-section {
     text-align: center;
-    margin-top: 18px; /* Ajustado */
+    margin-top: 18px;
     margin-bottom: 20px;
 }
 #undo-button {
-    padding: 10px 20px; /* Ajustado */
-    font-size: 0.95em; /* Aumentado */
+    padding: 10px 20px;
+    font-size: 0.95em;
     font-weight: bold;
-    border-radius: 8px; /* Aumentado */
+    border-radius: 8px;
     cursor: pointer;
     border: 1px solid var(--button-undo-border);
     border-bottom: 3px solid var(--button-undo-border-bottom);
     transition: background-color .2s, transform .1s ease-out, box-shadow .1s ease-out;
     background-color: var(--button-undo-bg);
-    color: var(--button-action-text); /* Usa a cor de texto dos botões de ação */
+    color: var(--button-action-text);
     box-shadow: 0 2px 4px var(--shadow-color-darker);
 }
 #undo-button:hover { background-color: var(--button-undo-hover); transform: translateY(-1px); }
@@ -591,18 +603,17 @@ hr {
     gap:12px
 }
 .action-buttons button {
-    padding: 12px 22px; /* Ajustado */
+    padding: 12px 22px;
     font-size: 0.95em;
     font-weight: bold;
-    border-radius: 8px; /* Aumentado */
+    border-radius: 8px;
     cursor: pointer;
     border-style: solid;
     border-width: 1px;
     border-bottom-width: 3px;
     transition: background-color .2s, transform .1s ease-out, box-shadow .1s ease-out;
-    width: 85%; /* Ajustado */
-    max-width: 300px; /* Ajustado */
-    color: var(--button-action-text);
+    width: 85%;
+    max-width: 300px;
     box-shadow: 0 2px 4px var(--shadow-color-darker);
 }
 .action-buttons button:hover {
@@ -613,23 +624,28 @@ hr {
     border-bottom-width: 1px;
     box-shadow: 0 1px 2px var(--shadow-color-darkest);
 }
-/* Cores específicas para botões de ação */
-#change-game-mode-btn { background-color: var(--button-change-mode-bg); border-color: var(--button-change-mode-border); border-bottom-color: var(--button-change-mode-border-bottom); color: var(--text-color); }
-body.light-theme #change-game-mode-btn { color: var(--button-action-text); } /* Garante contraste no tema claro */
-#change-game-mode-btn:hover { background-color: var(--button-change-mode-hover); }
-#change-game-mode-btn:active { background-color: var(--button-change-mode-active); }
 
-#edit-teams-btn { background-color: var(--button-edit-bg); border-color: var(--button-edit-border); border-bottom-color: var(--button-edit-border-bottom); }
+#edit-teams-btn { background-color: var(--button-edit-bg); border-color: var(--button-edit-border); border-bottom-color: var(--button-edit-border-bottom); color: var(--button-action-text); }
 #edit-teams-btn:hover { background-color: var(--button-edit-hover); }
 #edit-teams-btn:active { background-color: var(--button-edit-active); }
 
-.reset-game-button { background-color: var(--button-reset-game-bg); border-color: var(--button-reset-game-border); border-bottom-color: var(--button-reset-game-border-bottom); }
+.reset-game-button { background-color: var(--button-reset-game-bg); border-color: var(--button-reset-game-border); border-bottom-color: var(--button-reset-game-border-bottom); color: var(--button-action-text); }
 .reset-game-button:hover { background-color: var(--button-reset-game-hover); }
 .reset-game-button:active { background-color: var(--button-reset-game-active); }
 
-.reset-all-button { background-color: var(--button-reset-all-bg); border-color: var(--button-reset-all-border); border-bottom-color: var(--button-reset-all-border-bottom); }
+#change-game-mode-btn { background-color: var(--button-change-mode-bg); border-color: var(--button-change-mode-border); border-bottom-color: var(--button-change-mode-border-bottom); color: var(--button-action-text-light); }
+body.light-theme #change-game-mode-btn { color: var(--button-action-text); }
+#change-game-mode-btn:hover { background-color: var(--button-change-mode-hover); }
+#change-game-mode-btn:active { background-color: var(--button-change-mode-active); }
+
+.reset-all-button { background-color: var(--button-reset-all-bg); border-color: var(--button-reset-all-border); border-bottom-color: var(--button-reset-all-border-bottom); color: var(--button-action-text); }
 .reset-all-button:hover { background-color: var(--button-reset-all-hover); }
 .reset-all-button:active { background-color: var(--button-reset-all-active); }
+
+#export-history-btn { background-color: var(--button-export-bg); border-color: var(--button-export-border); border-bottom-color: var(--button-export-border-bottom); color: var(--button-action-text-light); }
+body.light-theme #export-history-btn { color: var(--button-action-text); }
+#export-history-btn:hover { background-color: var(--button-export-hover); }
+#export-history-btn:active { background-color: var(--button-export-active); }
 
 
 /* --- Histórico de Duração das Partidas --- */
@@ -639,7 +655,7 @@ body.light-theme #change-game-mode-btn { color: var(--button-action-text); } /* 
     padding: 15px;
     background-color: var(--section-bg-hist);
     border: 1px solid var(--border-color);
-    border-radius: 8px; /* Aumentado */
+    border-radius: 8px;
     text-align: left;
 }
 .duration-history-section h4 {
@@ -653,22 +669,22 @@ body.light-theme #change-game-mode-btn { color: var(--button-action-text); } /* 
     list-style: none;
     padding: 0;
     margin: 0;
-    max-height: 120px; /* Altura máxima para scroll */
-    overflow-y: auto; /* Adiciona scroll se necessário */
+    max-height: 120px;
+    overflow-y: auto;
     font-size: 0.9em;
     color: var(--text-color-light);
     font-family:'SF Mono', 'Monaco', 'Consolas', 'Courier New', Courier, monospace;
 }
 #duration-history-list li {
-    padding: 4px 6px; /* Ajustado */
+    padding: 4px 6px;
     border-bottom: 1px dashed var(--border-color-light);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: background-color 0.2s; /* Efeito suave no hover */
+    transition: background-color 0.2s;
 }
 #duration-history-list li:hover {
-    background-color: var(--section-bg); /* Destaque sutil no hover */
+    background-color: var(--section-bg);
 }
 #duration-history-list li:last-child { border-bottom: none; }
 
@@ -685,7 +701,7 @@ body.light-theme #change-game-mode-btn { color: var(--button-action-text); } /* 
 
 /* --- Estilo do Footer de Crédito --- */
 .footer-credit {
-    margin-top: 25px; /* Aumentado */
+    margin-top: 25px;
     padding-top: 15px;
     border-top: 1px solid var(--border-color);
     font-size: 0.8em;
