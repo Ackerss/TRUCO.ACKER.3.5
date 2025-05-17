@@ -10,8 +10,8 @@ let timerIntervalId = null; // ID do intervalo do cronômetro
 let gameStartTime = null; // Timestamp de quando o jogo atual começou
 let matchDurationHistory = []; // Histórico de durações das partidas [{ duration: ms, winner: 'nos'/'eles' }]
 let undoState = null; // Objeto para armazenar o estado anterior para a função "Desfazer"
-let teamNameNos = "Nós"; // Nome da equipe 1
-let teamNameEles = "Eles"; // Nome da equipe 2
+let teamNameNos = "Nós"; // Será substituído por nome do jogador em modo 2p
+let teamNameEles = "Eles"; // Será substituído por nome do jogador em modo 2p
 let currentTheme = 'dark'; // Tema atual ('dark' ou 'light')
 let wakeLock = null; // Objeto WakeLock para manter a tela acesa
 let isSoundOn = true; // Estado do som (ligado/desligado)
@@ -42,7 +42,8 @@ let scoreNosElement, scoreElesElement, prevScoreNosElement, prevScoreElesElement
     matchWinsNosElement, matchWinsElesElement, dealerNameElement, currentTimerElement,
     durationHistoryListElement, undoButton, teamNameNosElement, teamNameElesElement,
     themeToggleButton, soundToggleButton, bodyElement, themeMeta,
-    playerModeModal, select2PlayersBtn, select4PlayersBtn, changeGameModeBtn;
+    playerModeModal, select2PlayersBtn, select4PlayersBtn, changeGameModeBtn,
+    editTeamsButtonElement; // Referência para o botão de editar nomes
 
 // --- Funções de Armazenamento Local ---
 function saveData(key, data) {
@@ -98,6 +99,7 @@ function loadGameData() {
     matchesWonEles = loadData(STORAGE_KEYS.MATCHES_ELES, 0);
     playerNames = loadData(STORAGE_KEYS.PLAYER_NAMES, []);
     currentDealerIndex = loadData(STORAGE_KEYS.DEALER_INDEX, 0);
+    // Carrega nomes de equipe/jogador. Se for 2p, eles serão ajustados em initializeApp.
     teamNameNos = loadData(STORAGE_KEYS.TEAM_NAME_NOS, "Nós");
     teamNameEles = loadData(STORAGE_KEYS.TEAM_NAME_ELES, "Eles");
     matchDurationHistory = loadData(STORAGE_KEYS.DURATION_HISTORY, []);
@@ -111,7 +113,6 @@ function clearSavedGameData() {
         }
     });
     numberOfPlayers = 0; // Força a seleção de modo na próxima vez
-    // playerNames, currentDealerIndex, etc., serão resetados nas suas respectivas funções.
 }
 
 // --- Funções de Display (Atualizam a interface do usuário) ---
@@ -151,17 +152,17 @@ function updateDurationHistoryDisplay() {
     durationHistoryListElement.style.textAlign = 'left'; // Restaura alinhamento
     durationHistoryListElement.style.color = 'var(--text-color-light)';
 
-    // Cria uma cópia e inverte para mostrar o mais recente primeiro
     matchDurationHistory.slice().reverse().forEach((entry, index) => {
         const formattedTime = formatTime(entry.duration);
         const listItem = document.createElement('li');
-        const matchNumber = matchDurationHistory.length - index; // Número da partida correto
+        const matchNumber = matchDurationHistory.length - index;
+        const winnerDisplayName = entry.winner === 'nos' ? teamNameNos : teamNameEles;
         listItem.textContent = `Partida ${matchNumber}: ${formattedTime} `;
 
         const winnerIcon = document.createElement('span');
-        winnerIcon.classList.add('winner-icon', entry.winner); // 'nos' ou 'eles'
-        winnerIcon.textContent = 'V'; // Ícone de vencedor
-        winnerIcon.setAttribute('aria-label', `Vencedor: ${entry.winner === 'nos' ? teamNameNos : teamNameEles}`);
+        winnerIcon.classList.add('winner-icon', entry.winner);
+        winnerIcon.textContent = 'V';
+        winnerIcon.setAttribute('aria-label', `Vencedor: ${winnerDisplayName}`);
         listItem.appendChild(winnerIcon);
 
         durationHistoryListElement.appendChild(listItem);
@@ -177,6 +178,12 @@ function updateSoundButtonIcon() {
     if (soundToggleButton) soundToggleButton.textContent = isSoundOn ? '🔊' : '🔇';
 }
 
+function updateEditButtonText() {
+    if (editTeamsButtonElement) {
+        editTeamsButtonElement.textContent = (numberOfPlayers === 2) ? "Editar Nomes dos Jogadores" : "Editar Nomes das Equipes";
+    }
+}
+
 // --- Modal de Seleção de Modo de Jogo ---
 function showPlayerModeModal() {
     if (playerModeModal) playerModeModal.style.display = 'flex';
@@ -186,47 +193,36 @@ function hidePlayerModeModal() {
     if (playerModeModal) playerModeModal.style.display = 'none';
 }
 
-// Chamada quando o usuário seleciona 2 ou 4 jogadores no modal
 function selectPlayerMode(selectedMode) {
     const newNumberOfPlayers = parseInt(selectedMode, 10);
 
-    // Só processa se o modo realmente mudou ou se era o estado inicial (numberOfPlayers === 0)
     if (newNumberOfPlayers !== numberOfPlayers || numberOfPlayers === 0) {
         numberOfPlayers = newNumberOfPlayers;
         saveData(STORAGE_KEYS.NUMBER_OF_PLAYERS, numberOfPlayers);
-
-        // Reseta informações dependentes do número de jogadores
         playerNames = [];
         currentDealerIndex = 0;
-        saveData(STORAGE_KEYS.PLAYER_NAMES, playerNames); // Salva a lista de nomes vazia
-        saveData(STORAGE_KEYS.DEALER_INDEX, currentDealerIndex); // Salva o dealer resetado
-
-        resetCurrentGameScoresAndState(); // Reseta placar, timer, etc., do jogo atual
-        updateDealerDisplay(); // Atualiza o nome do dealer (deve mostrar "-- Defina os Nomes --")
+        saveData(STORAGE_KEYS.PLAYER_NAMES, playerNames);
+        saveData(STORAGE_KEYS.DEALER_INDEX, currentDealerIndex);
+        resetCurrentGameScoresAndState();
+        updateDealerDisplay();
+        updateEditButtonText();
 
         hidePlayerModeModal();
-        // Pequeno atraso para garantir que o modal desapareça antes do prompt de nomes
         setTimeout(() => {
-            getPlayerNames(); // Pede os nomes dos jogadores para o novo modo
+            getPlayerNames(); // getPlayerNames agora também ajusta teamNameNos/Eles
         }, 100);
     } else {
-        hidePlayerModeModal(); // Se o modo não mudou, apenas esconde o modal
+        hidePlayerModeModal();
     }
 }
 
 // --- Síntese de Voz ---
 function speakText(text, cancelPrevious = true) {
     if (!isSoundOn || !('speechSynthesis' in window)) return;
-
-    if (cancelPrevious && window.speechSynthesis.speaking) {
-        window.speechSynthesis.cancel();
-    }
-    // Pequeno atraso para garantir que o cancelamento ocorra antes da nova fala
+    if (cancelPrevious && window.speechSynthesis.speaking) window.speechSynthesis.cancel();
     setTimeout(() => {
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'pt-BR';
-        utterance.rate = 1.0; // Velocidade normal
-        utterance.pitch = 1.0; // Tom normal
+        utterance.lang = 'pt-BR'; utterance.rate = 1.0; utterance.pitch = 1.0;
         window.speechSynthesis.speak(utterance);
     }, cancelPrevious ? 50 : 0);
 }
@@ -238,164 +234,161 @@ function formatTime(milliseconds) {
     let hours = Math.floor(totalSeconds / 3600);
     let minutes = Math.floor((totalSeconds % 3600) / 60);
     let seconds = totalSeconds % 60;
-
     minutes = String(minutes).padStart(2, '0');
     seconds = String(seconds).padStart(2, '0');
-
-    return (hours > 0)
-        ? `${String(hours).padStart(2, '0')}:${minutes}:${seconds}`
-        : `${minutes}:${seconds}`;
+    return (hours > 0) ? `${String(hours).padStart(2, '0')}:${minutes}:${seconds}` : `${minutes}:${seconds}`;
 }
-
 function startTimer() {
-    stopTimer(); // Garante que qualquer timer anterior seja limpo
-    gameStartTime = Date.now();
-    if (currentTimerElement) currentTimerElement.textContent = "00:00"; // Reseta display
+    stopTimer(); gameStartTime = Date.now();
+    if (currentTimerElement) currentTimerElement.textContent = "00:00";
     timerIntervalId = setInterval(() => {
-        if (gameStartTime && currentTimerElement) {
-            const elapsed = Date.now() - gameStartTime;
-            currentTimerElement.textContent = formatTime(elapsed);
-        } else {
-            // Se gameStartTime for null (timer parado), limpa o intervalo
-            clearInterval(timerIntervalId);
-            timerIntervalId = null;
-        }
-    }, 1000); // Atualiza a cada segundo
-    requestWakeLock(); // Tenta manter a tela acesa
+        if (gameStartTime && currentTimerElement) currentTimerElement.textContent = formatTime(Date.now() - gameStartTime);
+        else { clearInterval(timerIntervalId); timerIntervalId = null; }
+    }, 1000);
+    requestWakeLock();
 }
-
 function stopTimer() {
     let durationMs = null;
-    if (gameStartTime) {
-        durationMs = Date.now() - gameStartTime; // Calcula duração
-    }
-    if (timerIntervalId) {
-        clearInterval(timerIntervalId);
-        timerIntervalId = null;
-    }
-    gameStartTime = null; // Reseta a hora de início
-    releaseWakeLock(); // Libera o bloqueio de tela
-    return durationMs; // Retorna a duração calculada
+    if (gameStartTime) durationMs = Date.now() - gameStartTime;
+    if (timerIntervalId) { clearInterval(timerIntervalId); timerIntervalId = null; }
+    gameStartTime = null; releaseWakeLock(); return durationMs;
 }
-
 function resetCurrentTimerDisplay() {
-    stopTimer(); // Para o timer e reseta variáveis relacionadas
-    if (currentTimerElement) currentTimerElement.textContent = "00:00"; // Reseta display
+    stopTimer(); if (currentTimerElement) currentTimerElement.textContent = "00:00";
 }
 
-// --- Wake Lock API (Manter a tela acesa) ---
+// --- Wake Lock API ---
 async function requestWakeLock() {
     if ('wakeLock' in navigator) {
         try {
-            if (wakeLock === null) { // Só pede se não tiver um ativo
+            if (wakeLock === null) {
                 wakeLock = await navigator.wakeLock.request('screen');
-                wakeLock.addEventListener('release', () => {
-                    // console.log('Wake Lock foi liberado.');
-                    wakeLock = null;
-                });
-                // console.log('Wake Lock ativado.');
+                wakeLock.addEventListener('release', () => { wakeLock = null; });
             }
-        } catch (err) {
-            // console.error(`Wake Lock falhou: ${err.name}, ${err.message}`);
-            wakeLock = null;
-        }
+        } catch (err) { wakeLock = null; }
     }
 }
-
 async function releaseWakeLock() {
     if (wakeLock !== null) {
-        try {
-            await wakeLock.release();
-        } catch (err) {
-            // console.error(`Erro ao liberar Wake Lock: ${err.name}, ${err.message}`);
-        } finally {
-            wakeLock = null;
-        }
+        try { await wakeLock.release(); } catch {} finally { wakeLock = null; }
     }
 }
-
-// Lida com a visibilidade da aba/app para gerenciar o WakeLock
 document.addEventListener('visibilitychange', async () => {
-    if (document.visibilityState === 'hidden' && wakeLock !== null) {
-        await releaseWakeLock(); // Libera se ficar oculto e o wakelock estiver ativo
-    } else if (document.visibilityState === 'visible' && gameStartTime) {
-        // Se voltar a ficar visível e um jogo estava em andamento (timer rodando), tenta reativar
-        await requestWakeLock();
-    }
+    if (document.visibilityState === 'hidden' && wakeLock !== null) await releaseWakeLock();
+    else if (document.visibilityState === 'visible' && gameStartTime) await requestWakeLock();
 });
 
 // --- Nomes dos Jogadores ---
 function getPlayerNames() {
-    if (numberOfPlayers === 0) {
-        // console.warn("Tentativa de obter nomes sem definir o número de jogadores.");
-        showPlayerModeModal(); // Se por algum motivo chegou aqui sem modo, mostra o modal
-        return;
-    }
-    playerNames = []; // Limpa array de nomes anterior
+    if (numberOfPlayers === 0) { showPlayerModeModal(); return; }
+    playerNames = [];
     const promptMessage = `Defina os ${numberOfPlayers} jogadores para o rodízio do embaralhador...`;
     alert(promptMessage);
-
     for (let i = 1; i <= numberOfPlayers; i++) {
         let playerNameInput = prompt(`Nome do Jogador ${i}:`);
-        // Loop até que um nome válido seja inserido
         while (!playerNameInput || playerNameInput.trim() === "") {
             alert("Nome inválido. Por favor, digite um nome.");
             playerNameInput = prompt(`Nome do Jogador ${i}:`);
         }
         playerNames.push(playerNameInput.trim());
     }
-    currentDealerIndex = 0; // O primeiro jogador da lista começa embaralhando
+    currentDealerIndex = 0;
     saveData(STORAGE_KEYS.PLAYER_NAMES, playerNames);
     saveData(STORAGE_KEYS.DEALER_INDEX, currentDealerIndex);
-    updateDealerDisplay(); // Atualiza o nome do embaralhador na tela
+    updateDealerDisplay();
+
+    // Ajusta os nomes das "equipes" (teamNameNos/Eles) após obter os nomes dos jogadores
+    if (numberOfPlayers === 2 && playerNames.length === 2) {
+        teamNameNos = playerNames[0];
+        teamNameEles = playerNames[1];
+    } else { // Para 4 jogadores ou se algo der errado, usa os padrões ou os salvos
+        // Se os nomes das equipes foram customizados antes para 4p, eles são carregados por loadGameData.
+        // Se não, "Nós" e "Eles" são os padrões.
+        teamNameNos = loadData(STORAGE_KEYS.TEAM_NAME_NOS, "Nós");
+        teamNameEles = loadData(STORAGE_KEYS.TEAM_NAME_ELES, "Eles");
+         // Garante que se mudou de 2p para 4p, os nomes não sejam os dos jogadores anteriores
+        if (playerNames.includes(teamNameNos) && playerNames.includes(teamNameEles) && numberOfPlayers === 4 && teamNameNos === teamNameEles) {
+            teamNameNos = "Nós";
+            teamNameEles = "Eles";
+        } else if (numberOfPlayers === 4 && (playerNames.includes(teamNameNos) || playerNames.includes(teamNameEles))) {
+             // Evita que um nome de jogador de um modo 2p anterior persista como nome de equipe em 4p
+            const defaultTeamNos = "Nós";
+            const defaultTeamEles = "Eles";
+            if (playerNames.includes(teamNameNos)) teamNameNos = defaultTeamNos;
+            if (playerNames.includes(teamNameEles)) teamNameEles = defaultTeamEles;
+            if (teamNameNos === teamNameEles) { // Caso ambos sejam resetados para "Nós" por exemplo
+                 teamNameEles = defaultTeamEles === defaultTeamNos ? "Eles Outra" : defaultTeamEles;
+            }
+        }
+    }
+    saveData(STORAGE_KEYS.TEAM_NAME_NOS, teamNameNos);
+    saveData(STORAGE_KEYS.TEAM_NAME_ELES, teamNameEles);
+    updateTeamNameDisplay();
 
     if (playerNames.length > 0) {
         speakText(`Iniciando novo jogo. O primeiro a embaralhar é ${playerNames[0]}`);
-        // Se o timer não estiver rodando E for o estado inicial (acabamos de configurar)
-        if (!gameStartTime && isInitialState) {
-            startTimer(); // Inicia o cronômetro do jogo
-        }
+        if (!gameStartTime && isInitialState) startTimer();
     }
 }
 
-// Verifica se os nomes dos jogadores precisam ser definidos para o modo atual
 function ensurePlayerNamesAreSet() {
     if (numberOfPlayers > 0 && playerNames.length !== numberOfPlayers) {
-        // Atraso para garantir que a interface do usuário esteja pronta
         setTimeout(() => {
             alert(`Por favor, defina os nomes para o modo de ${numberOfPlayers} jogadores.`);
-            getPlayerNames();
+            getPlayerNames(); // getPlayerNames agora ajusta teamNameNos/Eles
         }, 150);
     } else if (numberOfPlayers > 0 && playerNames.length === numberOfPlayers && isInitialState && !gameStartTime) {
-        // Nomes definidos, modo selecionado, estado inicial, timer não rodando -> iniciar timer
         startTimer();
     }
 }
 
-// --- Editar Nomes das Equipes ---
+// --- Editar Nomes das Equipes/Jogadores ---
 function editTeamNames() {
-    let newNameNos = prompt("Novo nome para a Equipe 1 (Nós):", teamNameNos);
-    if (newNameNos && newNameNos.trim() !== "") teamNameNos = newNameNos.trim();
+    if (numberOfPlayers === 0) {
+        alert("Primeiro selecione o modo de jogo.");
+        showPlayerModeModal();
+        return;
+    }
 
-    let newNameEles = prompt("Novo nome para a Equipe 2 (Eles):", teamNameEles);
-    if (newNameEles && newNameEles.trim() !== "") teamNameEles = newNameEles.trim();
+    if (numberOfPlayers === 2) {
+        if (playerNames.length !== 2) {
+            alert("Os nomes dos 2 jogadores ainda não foram definidos. Por favor, defina-os primeiro.");
+            getPlayerNames(); // Chama para definir se não existirem
+            return;
+        }
+        let newNameP1 = prompt("Novo nome para Jogador 1:", playerNames[0]);
+        if (newNameP1 && newNameP1.trim() !== "") {
+            playerNames[0] = newNameP1.trim();
+            teamNameNos = playerNames[0];
+        }
+        let newNameP2 = prompt("Novo nome para Jogador 2:", playerNames[1]);
+        if (newNameP2 && newNameP2.trim() !== "") {
+            playerNames[1] = newNameP2.trim();
+            teamNameEles = playerNames[1];
+        }
+        saveData(STORAGE_KEYS.PLAYER_NAMES, playerNames);
+    } else { // Modo 4 jogadores
+        let newTeamNameNos = prompt("Novo nome para a Equipe 1:", teamNameNos);
+        if (newTeamNameNos && newTeamNameNos.trim() !== "") teamNameNos = newTeamNameNos.trim();
 
+        let newTeamNameEles = prompt("Novo nome para a Equipe 2:", teamNameEles);
+        if (newTeamNameEles && newTeamNameEles.trim() !== "") teamNameEles = newTeamNameEles.trim();
+    }
     saveData(STORAGE_KEYS.TEAM_NAME_NOS, teamNameNos);
     saveData(STORAGE_KEYS.TEAM_NAME_ELES, teamNameEles);
     updateTeamNameDisplay();
-    updateDurationHistoryDisplay(); // Atualiza histórico que pode conter nomes de equipes
-    speakText("Nomes das equipes atualizados.");
+    updateDealerDisplay();
+    updateDurationHistoryDisplay();
+    speakText("Nomes atualizados.");
 }
 
 // --- Avançar Embaralhador ---
 function advanceDealer(speakAnnounce = false) {
     if (numberOfPlayers === 0 || playerNames.length !== numberOfPlayers) {
-        if (speakAnnounce) {
-            alert(`Primeiro defina o modo de jogo e os ${numberOfPlayers || 'devidos'} nomes dos jogadores.`);
-        }
-        return false; // Não avança se não tem jogadores definidos corretamente
+        if (speakAnnounce) alert(`Primeiro defina o modo de jogo e os ${numberOfPlayers || 'devidos'} nomes dos jogadores.`);
+        return false;
     }
-    currentDealerIndex = (currentDealerIndex + 1) % numberOfPlayers; // Avança e volta pro 0 (circular)
+    currentDealerIndex = (currentDealerIndex + 1) % numberOfPlayers;
     saveData(STORAGE_KEYS.DEALER_INDEX, currentDealerIndex);
     updateDealerDisplay();
     if (speakAnnounce && playerNames.length > 0 && playerNames[currentDealerIndex]) {
@@ -406,44 +399,18 @@ function advanceDealer(speakAnnounce = false) {
 
 // --- Lógica Principal de Pontuação ---
 function changeScore(team, amount, speakPointText = null) {
-    // Verifica se o jogo está configurado (modo e nomes)
     if (numberOfPlayers === 0 || playerNames.length !== numberOfPlayers) {
         alert("Por favor, configure o modo de jogo e os nomes dos jogadores antes de pontuar.");
-        if (numberOfPlayers === 0) {
-            showPlayerModeModal();
-        } else {
-            getPlayerNames();
-        }
-        return false; // Impede a pontuação
+        if (numberOfPlayers === 0) showPlayerModeModal(); else getPlayerNames();
+        return false;
     }
-
-    // Inicia o timer na primeira pontuação válida, se não estiver rodando e os nomes estiverem definidos
-    if (isInitialState && amount > 0 && !gameStartTime && playerNames.length === numberOfPlayers) {
-        startTimer();
-    }
-
+    if (isInitialState && amount > 0 && !gameStartTime && playerNames.length === numberOfPlayers) startTimer();
     let currentTargetScore = team === 'nos' ? scoreNos : scoreEles;
-    // Impede pontuação se já ganhou ou se vai ficar negativo (exceto se for -1 e score > 0)
-    if ((amount > 0 && currentTargetScore >= maxScore) || (amount < 0 && currentTargetScore <= 0)) {
-        return false; // Não altera a pontuação
-    }
-
-    // Salva o estado atual para um possível "Desfazer"
-    undoState = {
-        sN: scoreNos, sE: scoreEles,
-        psN: prevScoreNos, psE: prevScoreEles,
-        dI: currentDealerIndex, isI: isInitialState,
-        gST_elapsed: gameStartTime ? (Date.now() - gameStartTime) : null // Salva tempo decorrido
-    };
-    if (undoButton) undoButton.disabled = false; // Habilita o botão Desfazer
-
-    // Atualiza os placares anteriores ANTES de mudar os atuais
-    prevScoreNos = scoreNos;
-    prevScoreEles = scoreEles;
-    isInitialState = false; // Marca que uma ação já foi feita neste jogo
-    let winner = null; // Variável para verificar se houve vencedor
-
-    // Aplica a mudança de pontuação
+    if ((amount > 0 && currentTargetScore >= maxScore) || (amount < 0 && currentTargetScore <= 0)) return false;
+    undoState = { sN: scoreNos, sE: scoreEles, psN: prevScoreNos, psE: prevScoreEles, dI: currentDealerIndex, isI: isInitialState, gST_elapsed: gameStartTime ? (Date.now() - gameStartTime) : null };
+    if (undoButton) undoButton.disabled = false;
+    prevScoreNos = scoreNos; prevScoreEles = scoreEles; isInitialState = false;
+    let winner = null;
     if (team === 'nos') {
         scoreNos = Math.min(maxScore, Math.max(0, scoreNos + amount));
         if (scoreNos === maxScore) winner = 'nos';
@@ -451,25 +418,16 @@ function changeScore(team, amount, speakPointText = null) {
         scoreEles = Math.min(maxScore, Math.max(0, scoreEles + amount));
         if (scoreEles === maxScore) winner = 'eles';
     }
-    updateCurrentGameDisplay(); // Atualiza a exibição do placar
-
-    // Gira o embaralhador e anuncia por voz apenas se pontos foram ADICIONADOS
+    updateCurrentGameDisplay();
     if (amount > 0) {
         if (speakPointText) speakText(speakPointText, true);
-        const dealerAdvanced = advanceDealer(false); // Avança o dealer sem anunciar agora
+        const dealerAdvanced = advanceDealer(false);
         if (dealerAdvanced && playerNames.length > 0 && playerNames[currentDealerIndex]) {
-            // Adiciona um pequeno atraso para anunciar o novo embaralhador
             setTimeout(() => speakText(`Embaralhador: ${playerNames[currentDealerIndex]}`, true), 800);
         }
     }
-    // Se houve vencedor, processa o fim da partida
-    if (winner) {
-        processMatchEnd(winner);
-    } else {
-        // Se o jogo continua, salva o novo estado
-        saveGameState();
-    }
-    return true; // Indica que a pontuação foi (potencialmente) alterada
+    if (winner) processMatchEnd(winner); else saveGameState();
+    return true;
 }
 
 // --- Desfazer Última Ação ---
@@ -478,186 +436,119 @@ function undoLastAction() {
         scoreNos = undoState.sN; scoreEles = undoState.sE;
         prevScoreNos = undoState.psN; prevScoreEles = undoState.psE;
         currentDealerIndex = undoState.dI; isInitialState = undoState.isI;
-
-        // Restaura o estado do timer
-        if (undoState.gST_elapsed !== null && !isInitialState) { // Se havia tempo e não voltou ao estado inicial
-            stopTimer(); // Para qualquer timer atual
-            gameStartTime = Date.now() - undoState.gST_elapsed; // Recalcula o início baseado no tempo decorrido salvo
-            startTimer(); // Reinicia o timer
-            if (currentTimerElement) currentTimerElement.textContent = formatTime(undoState.gST_elapsed); // Atualiza display
-        } else if (isInitialState) { // Se desfez para o estado inicial absoluto, para e reseta o timer
-            resetCurrentTimerDisplay();
-        }
-        // Se undoState.gST_elapsed é null, significa que o timer não estava rodando, então não faz nada com ele.
-
-        updateCurrentGameDisplay();
-        updateDealerDisplay();
-        saveGameState(); // Salva o estado restaurado
-
-        undoState = null; // Limpa o estado de desfazer
-        if (undoButton) undoButton.disabled = true; // Desabilita o botão
+        if (undoState.gST_elapsed !== null && !isInitialState) {
+            stopTimer(); gameStartTime = Date.now() - undoState.gST_elapsed; startTimer();
+            if (currentTimerElement) currentTimerElement.textContent = formatTime(undoState.gST_elapsed);
+        } else if (isInitialState) { resetCurrentTimerDisplay(); }
+        updateCurrentGameDisplay(); updateDealerDisplay(); saveGameState();
+        undoState = null; if (undoButton) undoButton.disabled = true;
         speakText("Última ação desfeita", true);
     } else {
-        speakText("Nada para desfazer", true);
-        if (undoButton) undoButton.disabled = true;
+        speakText("Nada para desfazer", true); if (undoButton) undoButton.disabled = true;
     }
 }
 
 // --- Fim de Partida ---
 function processMatchEnd(winnerTeam) {
-    const durationMs = stopTimer(); // Para o cronômetro e pega a duração
+    const durationMs = stopTimer();
     if (durationMs !== null) {
         matchDurationHistory.push({ duration: durationMs, winner: winnerTeam });
         saveData(STORAGE_KEYS.DURATION_HISTORY, matchDurationHistory);
         updateDurationHistoryDisplay();
     }
-    undoState = null; // Limpa estado de desfazer
-    if (undoButton) undoButton.disabled = true; // Desabilita desfazer
-    updateCurrentGameDisplay(); // Mostra o placar final (ex: 12 pontos)
-
-    // Atraso para permitir que o usuário veja o placar final
+    undoState = null; if (undoButton) undoButton.disabled = true;
+    updateCurrentGameDisplay();
     setTimeout(() => {
         const winnerNameDisplay = winnerTeam === 'nos' ? teamNameNos : teamNameEles;
         if (winnerTeam === 'nos') matchesWonNos++; else matchesWonEles++;
         saveData(STORAGE_KEYS.MATCHES_NOS, matchesWonNos);
         saveData(STORAGE_KEYS.MATCHES_ELES, matchesWonEles);
-
-        // Pequeno atraso antes do alerta para o som de vitória tocar
         setTimeout(() => {
             speakText(`${winnerNameDisplay} ${winnerTeam === 'nos' ? 'ganhou' : 'ganharam'} a partida!`, true);
             alert(`${winnerNameDisplay} venceu a partida!\n\nDuração: ${formatTime(durationMs)}\nPlacar de partidas: ${teamNameNos} ${matchesWonNos} x ${matchesWonEles} ${teamNameEles}`);
-            updateMatchWinsDisplay();
-            prepareNextGame(); // Prepara para o próximo jogo
+            updateMatchWinsDisplay(); prepareNextGame();
         }, 300);
     }, 850);
 }
 
-// --- Prepara Próximo Jogo (zera placares do jogo atual, reseta timer, etc.) ---
+// --- Prepara Próximo Jogo ---
 function prepareNextGame() {
-    scoreNos = 0; scoreEles = 0;
-    prevScoreNos = 0; prevScoreEles = 0;
-    isInitialState = true; // Marca como início de um novo jogo
-    undoState = null;
-    if (undoButton) undoButton.disabled = true;
-    updateCurrentGameDisplay(); // Mostra 0 a 0
-
-    resetCurrentTimerDisplay(); // Para e reseta o display do timer
-
-    // Se os jogadores já estão definidos para o modo atual, inicia o timer para o novo jogo
+    scoreNos = 0; scoreEles = 0; prevScoreNos = 0; prevScoreEles = 0; isInitialState = true;
+    undoState = null; if (undoButton) undoButton.disabled = true;
+    updateCurrentGameDisplay(); resetCurrentTimerDisplay();
     if (numberOfPlayers > 0 && playerNames.length === numberOfPlayers) {
-        setTimeout(() => {
-            startTimer();
-            saveGameState(); // Salva o estado agora que o timer (potencialmente) começou
-        }, 100);
-    } else {
-        saveGameState(); // Salva o estado zerado mesmo sem timer (ex: se ainda não definiu nomes)
-    }
+        setTimeout(() => { startTimer(); saveGameState(); }, 100);
+    } else { saveGameState(); }
 }
-
-// Função auxiliar para resetar o jogo atual sem pedir confirmação ao usuário
 function resetCurrentGameScoresAndState() {
-    undoState = null;
-    if (undoButton) undoButton.disabled = true;
-    prepareNextGame(); // Zera placares, reseta timer, etc.
+    undoState = null; if (undoButton) undoButton.disabled = true;
+    prepareNextGame();
 }
 
 // --- Funções de Reset ---
 function resetCurrentGame() {
-    // Verifica se o jogo está configurado antes de resetar
     if (numberOfPlayers === 0 || playerNames.length !== numberOfPlayers) {
         alert("Configure o modo de jogo e os nomes dos jogadores primeiro.");
         if (numberOfPlayers === 0) showPlayerModeModal(); else getPlayerNames();
         return;
     }
     if (confirm("Tem certeza que deseja reiniciar apenas o jogo atual (placar de 0 a 12)?")) {
-        resetCurrentGameScoresAndState();
-        speakText("Jogo atual reiniciado.");
+        resetCurrentGameScoresAndState(); speakText("Jogo atual reiniciado.");
     }
 }
-
 function resetAllScores() {
     if (confirm("!!! ATENÇÃO !!!\n\nTem certeza que deseja ZERAR TODO o placar?\n\nIsso inclui:\n- Partidas ganhas\n- Jogo atual\n- Nomes dos jogadores e modo de jogo\n- Histórico de tempos\n\nEsta ação não pode ser desfeita.")) {
-        clearSavedGameData(); // Limpa TUDO do localStorage (exceto tema/som)
-
-        // Reseta variáveis de estado para o padrão
-        matchesWonNos = 0; matchesWonEles = 0;
-        playerNames = []; currentDealerIndex = 0;
-        teamNameNos = "Nós"; teamNameEles = "Eles";
-        matchDurationHistory = [];
-        // numberOfPlayers já foi resetado para 0 em clearSavedGameData()
-
+        clearSavedGameData();
+        matchesWonNos = 0; matchesWonEles = 0; playerNames = []; currentDealerIndex = 0;
+        teamNameNos = "Nós"; teamNameEles = "Eles"; matchDurationHistory = [];
         undoState = null; if (undoButton) undoButton.disabled = true;
-
-        updateMatchWinsDisplay();
-        updateDealerDisplay(); // Mostrará "-- Selecione o Modo --"
-        updateDurationHistoryDisplay();
-        updateTeamNameDisplay();
-        resetCurrentGameScoresAndState(); // Zera o placar atual na tela e para o timer
-
+        updateMatchWinsDisplay(); updateDealerDisplay(); updateDurationHistoryDisplay(); updateTeamNameDisplay();
+        resetCurrentGameScoresAndState();
+        updateEditButtonText();
         speakText("Placar geral e configurações zerados.");
-        showPlayerModeModal(); // Força a seleção do modo de jogo novamente
+        showPlayerModeModal();
     }
 }
 
 // --- Tema ---
 function setTheme(themeName) {
     if (!bodyElement || !themeToggleButton || !themeMeta) return;
-    bodyElement.className = themeName + '-theme'; // Aplica classe ao body
-    currentTheme = themeName;
+    bodyElement.className = themeName + '-theme'; currentTheme = themeName;
     saveData(STORAGE_KEYS.THEME, themeName);
-    themeToggleButton.textContent = themeName === 'dark' ? '☀️' : '🌙'; // Atualiza ícone
-    themeMeta.content = themeName === 'dark' ? '#1f1f1f' : '#f0f0f0'; // Cor da barra de status do navegador
+    themeToggleButton.textContent = themeName === 'dark' ? '☀️' : '🌙';
+    themeMeta.content = themeName === 'dark' ? '#1f1f1f' : '#f0f0f0';
 }
-
-function toggleTheme() {
-    setTheme(currentTheme === 'dark' ? 'light' : 'dark');
-}
+function toggleTheme() { setTheme(currentTheme === 'dark' ? 'light' : 'dark'); }
 
 // --- Som ---
 function setSound(soundOn) {
-    isSoundOn = soundOn;
-    saveData(STORAGE_KEYS.SOUND_ON, isSoundOn);
-    updateSoundButtonIcon();
+    isSoundOn = soundOn; saveData(STORAGE_KEYS.SOUND_ON, isSoundOn); updateSoundButtonIcon();
 }
-
 function toggleSound() {
     setSound(!isSoundOn);
-    if (isSoundOn) {
-        speakText("Som ativado.", true);
-    } else {
-        // Se desligou, cancela qualquer fala em andamento
-        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-    }
+    if (isSoundOn) speakText("Som ativado.", true);
+    else if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 }
 
 // --- Adiciona Listeners de Eventos ---
 function addEventListeners() {
-    // Delegação de eventos para botões de pontuação (+1, -1, +3, etc.)
     document.querySelector('.teams').addEventListener('click', event => {
         const button = event.target.closest('button');
         if (button && button.dataset.team && button.dataset.amount) {
             changeScore(button.dataset.team, parseInt(button.dataset.amount, 10), button.dataset.speak);
         }
     });
-
-    // Listeners para os outros botões
     document.getElementById('next-dealer-btn')?.addEventListener('click', () => advanceDealer(true));
     document.getElementById('undo-button')?.addEventListener('click', undoLastAction);
-    document.getElementById('edit-teams-btn')?.addEventListener('click', editTeamNames);
+    editTeamsButtonElement?.addEventListener('click', editTeamNames);
     document.getElementById('reset-game-btn')?.addEventListener('click', resetCurrentGame);
     document.getElementById('reset-all-btn')?.addEventListener('click', resetAllScores);
     document.getElementById('theme-toggle-btn')?.addEventListener('click', toggleTheme);
     document.getElementById('sound-toggle-btn')?.addEventListener('click', toggleSound);
-
-    // Listeners do Modal de Seleção de Modo
     select2PlayersBtn?.addEventListener('click', () => selectPlayerMode(2));
     select4PlayersBtn?.addEventListener('click', () => selectPlayerMode(4));
-
-    // Listener para o botão "Alterar Modo de Jogo"
     changeGameModeBtn?.addEventListener('click', () => {
         if (confirm("Mudar o modo de jogo irá reiniciar a partida atual, incluindo placares e nomes dos jogadores. Deseja continuar?")) {
-            // Não precisa resetar numberOfPlayers aqui, pois selectPlayerMode fará isso se o modo mudar.
-            // Apenas mostra o modal para nova seleção.
             showPlayerModeModal();
         }
     });
@@ -665,7 +556,6 @@ function addEventListeners() {
 
 // --- Inicialização do Aplicativo ---
 function initializeApp() {
-    // Pega referências para os elementos do DOM uma vez
     scoreNosElement = document.getElementById('score-nos');
     scoreElesElement = document.getElementById('score-eles');
     prevScoreNosElement = document.getElementById('prev-score-nos');
@@ -686,41 +576,52 @@ function initializeApp() {
     select2PlayersBtn = document.getElementById('select-2-players-btn');
     select4PlayersBtn = document.getElementById('select-4-players-btn');
     changeGameModeBtn = document.getElementById('change-game-mode-btn');
+    editTeamsButtonElement = document.getElementById('edit-teams-btn');
 
-    // Carrega configurações e dados salvos
-    loadGameSettings(); // Carrega tema, som, e numberOfPlayers (pode ser 0 se não salvo)
-    loadGameData();     // Carrega o resto dos dados do jogo
+    loadGameSettings();
+    loadGameData();
 
-    // Aplica tema e estado do som carregados
+    if (numberOfPlayers === 2 && playerNames.length === 2) {
+        teamNameNos = playerNames[0];
+        teamNameEles = playerNames[1];
+    } else if (numberOfPlayers === 4) {
+        // Se mudou de 2p para 4p e os nomes das equipes ainda são nomes de jogadores, reseta para "Nós"/"Eles"
+        // Esta condição é para o caso de carregar um estado salvo onde era 2p e os nomes das equipes eram nomes de jogadores.
+        // E então o usuário mudou para 4p mas os nomes das equipes não foram explicitamente resetados.
+        // No entanto, a função selectPlayerMode e getPlayerNames já tentam lidar com isso.
+        // Apenas como uma checagem final ao carregar.
+        if (playerNames.includes(teamNameNos) || playerNames.includes(teamNameEles)) {
+             // Se teamNameNos ou teamNameEles ainda são nomes da lista playerNames (que seria de 2 jogadores),
+             // e agora estamos em modo 4 jogadores, é melhor resetar para os padrões.
+             // No entanto, se os nomes das equipes foram explicitamente definidos para 4p e por acaso
+             // coincidem com nomes de jogadores de um modo 2p anterior, esta lógica pode ser muito agressiva.
+             // A forma mais segura é deixar loadGameData carregar o que foi salvo para teamNameNos/Eles,
+             // e a lógica em getPlayerNames/selectPlayerMode tratar da transição.
+             // Se teamNameNos/Eles não foram salvos explicitamente para 4p, eles serão "Nós"/"Eles" por padrão.
+        }
+    }
+
+
     setTheme(currentTheme);
     setSound(isSoundOn);
+    updateEditButtonText();
 
-    // Atualiza todos os displays com os dados carregados
     updateCurrentGameDisplay();
     updateMatchWinsDisplay();
     updateTeamNameDisplay();
-    updateDealerDisplay(); // Chamado antes de potencialmente pedir nomes
+    updateDealerDisplay();
     updateDurationHistoryDisplay();
-    if (undoButton) undoButton.disabled = (undoState === null); // Estado inicial do botão Desfazer
+    if (undoButton) undoButton.disabled = (undoState === null);
 
-    addEventListeners(); // Adiciona os listeners aos botões e outros elementos
+    addEventListeners();
 
-    // Lógica de inicialização do modo de jogo e nomes dos jogadores
-    if (numberOfPlayers === 0) { // Se nenhum modo foi salvo/definido antes (primeira vez ou após reset total)
-        setTimeout(showPlayerModeModal, 50); // Mostra o modal para seleção inicial com um pequeno delay
+    if (numberOfPlayers === 0) {
+        setTimeout(showPlayerModeModal, 50);
     } else {
-        // Modo já definido (ex: 2 ou 4), verifica se os nomes correspondentes estão definidos
         ensurePlayerNamesAreSet();
-        // Se o jogo não era inicial (isInitialState === false) e o timer não está rodando (ex: recarregou a página)
-        // o timer é reiniciado pela primeira pontuação válida ou em prepareNextGame.
-        // Apenas garante que o display do timer esteja correto se não houver jogo ativo.
-        if (!gameStartTime && !isInitialState) {
-             resetCurrentTimerDisplay();
-        } else if (isInitialState) { // Se é o estado inicial (novo jogo), reseta o display do timer.
-            resetCurrentTimerDisplay();
-        }
+        if (!gameStartTime && !isInitialState) resetCurrentTimerDisplay();
+        else if (isInitialState) resetCurrentTimerDisplay();
     }
 }
 
-// Inicia tudo quando o DOM estiver pronto
 document.addEventListener('DOMContentLoaded', initializeApp);
